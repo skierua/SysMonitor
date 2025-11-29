@@ -1,0 +1,79 @@
+cmake_minimum_required(VERSION 3.16)
+
+project(SysMonitor VERSION 0.1 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# VY Add include directories so target can find the QML_ELEMENTS
+set(QML_INCLUDES
+    ${CMAKE_CURRENT_SOURCE_DIR}/shared
+)
+
+find_package(Qt6 REQUIRED COMPONENTS Quick)
+find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Core)
+
+qt_standard_project_setup(REQUIRES 6.8)
+
+qt_add_executable(appSysMonitor  WIN32 MACOSX_BUNDLE
+    main.cpp
+)
+qt_add_qml_module(appSysMonitor
+    URI SysMonitor
+    VERSION 1.0
+    QML_FILES
+        qt/qml/Main.qml
+        # SOURCES shared/TempLib.h
+        # SOURCES test/testmac.h test/testmac.cpp
+        SOURCES shared/stru.h
+        SOURCES shared/procprovider.h shared/procprovider.cpp
+        SOURCES macos/lib.h
+        SOURCES shared/memprovider.h shared/memprovider.cpp
+        SOURCES shared/logger.h shared/logger.cpp
+        QML_FILES qt/qml/ProcViewDelegate.qml
+        QML_FILES qt/qml/ProcViewHighlight.qml
+        QML_FILES qt/qml/HeaderElem.qml
+        QML_FILES qt/qml/MemView.qml
+        QML_FILES qt/qml/lib.js
+        RESOURCES TODO.txt
+        RESOURCES README.md
+        RESOURCES .gitignore
+)
+
+# qt_add_qml_module(appSysMonitor
+#   URI com.sysmonitor
+#   VERSION 1.0
+# )
+
+# VY Add includepaths
+target_include_directories(appSysMonitor PRIVATE
+   ${QML_INCLUDES}
+)
+
+# Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
+# If you are developing for iOS or macOS you should consider setting an
+# explicit, fixed bundle identifier manually though.
+set_target_properties(appSysMonitor PROPERTIES
+#    MACOSX_BUNDLE_GUI_IDENTIFIER com.example.appSysMonitor
+    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+    MACOSX_BUNDLE TRUE
+    WIN32_EXECUTABLE TRUE
+)
+
+target_link_libraries(appSysMonitor
+    PRIVATE Qt6::Quick
+)
+target_link_libraries(appSysMonitor PRIVATE Qt6::Core)
+target_link_libraries(appSysMonitor PRIVATE Qt6::Core)
+target_link_libraries(appSysMonitor PRIVATE Qt6::Core)
+target_link_libraries(appSysMonitor PRIVATE Qt6::Core)
+
+include(GNUInstallDirs)
+install(TARGETS appSysMonitor
+    BUNDLE DESTINATION .
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(SysMonitor VERSION 0.1 LANGUAGES CXX)
+project(SysMonitor VERSION 0.95 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -40,6 +40,8 @@ qt_add_qml_module(appSysMonitor
         RESOURCES TODO.txt
         RESOURCES README.md
         RESOURCES .gitignore
+        SOURCES winos/lib.h
+        SOURCES linux/lib.h
 )
 
 # qt_add_qml_module(appSysMonitor

@@ -56,9 +56,10 @@ int main(int argc, char *argv[])
     // execution thread
     std::thread etProc([&procProvider, &et_working_flag](auto fn_getProcList, auto fn_getCrntEUID){
         procProvider.setEUID(fn_getCrntEUID());
-        int n{0};
-        while (et_working_flag.load(std::memory_order_relaxed) && n < 100) {
-            ++n;
+        // int n{0};
+        // while (et_working_flag.load(std::memory_order_relaxed) && n < 100) {
+        //      ++n;
+        while (et_working_flag.load(std::memory_order_relaxed)) {
             procProvider.addProcList(std::move(fn_getProcList()));
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         }
@@ -69,9 +70,10 @@ int main(int argc, char *argv[])
     // execution thread
     std::thread etMem([&memProvider, &et_working_flag](auto fn_getRAMUsage, auto fn_getRAMSize){
         memProvider.setTotalRAM(fn_getRAMSize());
-        int n{0};
-        while (et_working_flag.load(std::memory_order_relaxed) && n < 100) {
-            ++n;
+        // int n{0};
+        // while (et_working_flag.load(std::memory_order_relaxed) && n < 100) {
+        //      ++n;
+        while (et_working_flag.load(std::memory_order_relaxed)) {
             memProvider.addData(fn_getRAMUsage());
             // auto mem = fn_getRAMUsage();
             // std::cout << "main.cpp data=" << mem/(1024*1024) << "MB" << " =" << mem << std::endl;
@@ -84,7 +86,7 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
     engine.setInitialProperties({
         { "procProvider", QVariant::fromValue(&procProvider) }
-        , {"memProvider", QVariant::fromValue(&memProvider) }
+        , { "memProvider", QVariant::fromValue(&memProvider) }
     });
 
     QObject::connect(

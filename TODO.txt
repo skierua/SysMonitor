@@ -1,5 +1,5 @@
 
 2025-11-26
 compress archive file duaring rotation
-Qt/qCompress compression is not properly subborted by OS
+Qt/qCompress compression is not properly supported by OS
 

@@ -62,6 +62,10 @@ void ProcProvider::addProcList(QList<vk_proc_info> &&proc){
     // TODO std::atomic ?
     if (m_lock) return;
     lock();
+    if (proc.size() == 0){
+        emit message("Kernel error. Processess list not retrieved.", 4);
+        return;
+    }
     std::sort(proc.begin(), proc.end(), [](vk_proc_info a,vk_proc_info b){ return a.mem > b.mem;});
     // beginResetModel();
     // m_procList.clear();

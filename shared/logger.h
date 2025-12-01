@@ -19,7 +19,12 @@ public:
     explicit Logger(const QString& sysLogPath, QObject *parent = nullptr);
     ~Logger() =default;
 
-    bool isValid() const { return m_valid; }
+    bool isValid() const
+    { return m_valid; }
+
+    bool consoleMode(bool mode)
+    { m_toConsole = mode; }
+
     const QString lastError() const { return m_lastError; }
     const QString logPath() const { return generateFileName(); }
 
@@ -33,9 +38,9 @@ public slots:
 private:
     int m_level{SMLOG::INFO | SMLOG::FATAL | SMLOG::ERROR};
 
-    unsigned long long m_logMaxSize{1 * 1024};
+    unsigned long long m_logMaxSize{1 * 1024 * 1024};
     // duplicate log to consol
-    bool m_toConsole{true};
+    bool m_toConsole{false};
     // is class properly construced
     bool m_valid{false};
     // OS path for logs

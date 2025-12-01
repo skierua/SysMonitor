@@ -3,12 +3,12 @@
 
 // #include <iostream>
 #include <vector>
-#include <cstdint>
-#include <libproc.h>
-#include <unistd.h>
-#include <signal.h> // For kill()
-#include <sys/sysctl.h> // For sysctl() and related definitions
-#include <mach/mach.h>  // for host_statistics64
+// #include <cstdint>
+// #include <libproc.h>
+// #include <unistd.h>
+// #include <signal.h> // For kill()
+// #include <sys/sysctl.h> // For sysctl() and related definitions
+// #include <mach/mach.h>  // for host_statistics64
 
 #include "../shared/stru.h"
 
@@ -26,6 +26,8 @@ int getCrntEUID(){
 
 
 int termProc(int pid){
+    return -1;
+    /*
     int signal = SIGTERM;
     // std::cout << "BEFORE lib termProc pid=" << pid
     //           << ". Reason: " << strerror(errno) << std::endl;
@@ -40,6 +42,7 @@ int termProc(int pid){
     // std::cout << "AFTER lib termProc pid=" << pid << " res=" << ok
     // << ". Reason: " << strerror(errno) << std::endl;
     return ok;
+    */
 }
 
 // deprecated
@@ -49,7 +52,8 @@ std::vector<vk_proc_info> getProc(){
     size_t len;
     // vector<vk_proc_info> res;
     std::vector<vk_proc_info> res;
-
+    return std::move(res);
+/*
     mib[0] = CTL_KERN;
     mib[1] = KERN_PROC;
     mib[2] = KERN_PROC_ALL;
@@ -100,11 +104,14 @@ std::vector<vk_proc_info> getProc(){
 
     // std::sort(res.begin(), res.end(), [](vk_proc_info a,vk_proc_info b){ return a.mem > b.mem;});
     return std::move(res);
+    */
 }
 
 // procinfo.h based
 VProcInfoList getProcList(){
     VProcInfoList res;
+    return std::move(res);
+    /*
     size_t len = proc_listpids(PROC_ALL_PIDS, 0, NULL, 0);
     if (len <= 0) {
         // perror("proc_listpids failed to estimate size");
@@ -142,9 +149,12 @@ VProcInfoList getProcList(){
     }
 
     return std::move(res);
+*/
 }
 
 QString getProcPath(int pid) {
+    return QString("");
+    /*
     // pid_t pid = getpid();
     int buffer_size = PROC_PIDPATHINFO_MAXSIZE; // Max size defined in libproc.h
     std::vector<char> buffer(buffer_size);
@@ -161,27 +171,27 @@ QString getProcPath(int pid) {
         // perror("proc_pidpath failed");
         return QString("");
     }
+*/
 }
 
 uint64_t getRAMSize() {
     uint64_t res{0};  // same as unsigned long long
     size_t len = sizeof(res);
-
+/*
     int mib[2]; // Management Information Base (MIB) array
     mib[0] = CTL_HW;
     mib[1] = HW_MEMSIZE;
     if (sysctl(mib, 2, &res, &len, NULL, 0) == -1) {
         // std::cerr << "1 sysctl (len):" << std::strerror(errno) << std::endl;
         return 0;
-    }
-
+*/
     return res;
 }
 
 // res =0 for error, but it's not fair enought
 uint64_t getRAMUsage() {
     uint64_t res{0};  // same as unsigned long long
-
+/*
     vm_statistics64_data_t vm_stats;
     // mach_port_t host_port = mach_host_self();
     mach_msg_type_number_t len = HOST_VM_INFO64_COUNT;
@@ -214,7 +224,7 @@ uint64_t getRAMUsage() {
           + vm_stats.wire_count
           + vm_stats.speculative_count
            - vm_stats.purgeable_count) * page_size;
-
+*/
 
     return res;
 }

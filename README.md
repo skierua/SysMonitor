@@ -10,7 +10,7 @@ beta, ready to use
 
 
 ### Windows ###
-not ready yet
+beta, ready to use
 - Win10
     - MinGW 13.1.0 64-bit for c++ - it almost works. Unfortunautly unstable ))s
     - MSVC2022 64bit

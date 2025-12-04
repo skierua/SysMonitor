@@ -24,7 +24,7 @@ class ProcProvider : public QAbstractListModel
 public:
     enum ProcRoles {
         PidRole = Qt::UserRole + 1,
-        CommRole, MemRole, VmRole, Th_allRole,Th_activeRole, TmRole
+        CommRole, MemRole, VmRole, Th_allRole,Th_activeRole, Th_strRole, TmRole
     };
     explicit ProcProvider(QObject *parent = nullptr);
 

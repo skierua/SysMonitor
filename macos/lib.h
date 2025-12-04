@@ -3,6 +3,7 @@
 
 // #include <iostream>
 #include <vector>
+#include <cerrno>
 #include <cstdint>
 #include <libproc.h>
 #include <unistd.h>
@@ -19,11 +20,15 @@
 namespace MacLib {
 
 std::string sysLogPath()
-// { return "~Library/Logs"; }
+// { return "~Library/Logs"; }  // default for macOS
 { return "./Logs"; }    // default for testing
 
 int getCrntEUID(){
     return geteuid();
+}
+
+int lastErrNo(){
+    return errno;
 }
 
 int canTerminate(int pid) {
@@ -42,6 +47,8 @@ int termProc(int pid){
     // std::cout << "BEFORE lib termProc pid=" << pid
     //           << ". Reason: " << strerror(errno) << std::endl;
     int ok = proc_terminate(pid, &signal);
+    // std::cout << "AFTER0 lib termProc pid=" << pid << " res=" << ok
+    //           << ". Reason: " << strerror(errno) << std::endl;
     // if (ok) return ok;
     usleep(50000);
     if (kill(pid, 0) == -1 && errno == ESRCH){
@@ -94,7 +101,7 @@ std::vector<vk_proc_info> getProc(){
         res.push_back(vk_proc_info());
         res[res.size()-1].pid = processes[i].kp_proc.p_pid;
         res[res.size()-1].ppid = 0;
-        res[res.size()-1].comm = QString(processes[i].kp_proc.p_comm);
+        res[res.size()-1].qcomm = QString(processes[i].kp_proc.p_comm);
         res[res.size()-1].mem = procInfo.pti_resident_size;
         res[res.size()-1].vm = procInfo.pti_virtual_size;
         res[res.size()-1].th_all = procInfo.pti_threadnum;
@@ -142,7 +149,8 @@ VProcInfoList getProcList(){
 
         vpri.pid = pids[i];
         vpri.ppid = bsd_info.pbi_ppid;
-        vpri.comm = bsd_info.pbi_comm;
+        // vpri.comm = bsd_info.pbi_comm;
+        vpri.qcomm = QString(bsd_info.pbi_comm);
         vpri.mem = procInfo.pti_resident_size;
         vpri.vm = procInfo.pti_virtual_size;
         vpri.th_all = procInfo.pti_threadnum;
@@ -158,6 +166,8 @@ VProcInfoList getProcList(){
 
 QString getProcPath(int pid) {
     // pid_t pid = getpid();
+    if (pid < 1) return QString("");
+
     int buffer_size = PROC_PIDPATHINFO_MAXSIZE; // Max size defined in libproc.h
     std::vector<char> buffer(buffer_size);
 

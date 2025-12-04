@@ -66,6 +66,7 @@ Window {
                         currentIndex: -1
                         model: root.procProvider
                         spacing: 2
+                        // cacheBuffer: 200
                         header: Rectangle{
                             width: vw.width
                             height: 30

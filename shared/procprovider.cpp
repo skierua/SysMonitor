@@ -25,11 +25,12 @@ bool ProcProvider::terminate()
     lock(105);
     auto msg = QString("ProcProvider::terminate() %1/%2")
                    .arg(QString::number(m_crntPID),
-                        QString::fromStdString(m_procList.at(m_crntPIDIndex).comm));
+                        m_procList.at(m_crntPIDIndex).qcomm);
     int ok = m_procTerm(m_crntPID);
     // qDebug() << "ProcProvider::terminate 1";
     if (ok == 0){
-        auto row = m_crntPIDIndex;
+        // to avoid compiler optimiztion
+        volatile auto row = m_crntPIDIndex;
         beginRemoveRows(QModelIndex(), row, row);
         // qDebug() << "ProcProvider::terminate 2";
         m_crntPIDIndex = -1;
@@ -47,6 +48,7 @@ bool ProcProvider::terminate()
 }
 
 QString ProcProvider::procPath() {
+    if ((m_crntPID == 0) || (m_crntPIDIndex = -1)) return QString("");
     QString res = m_procPath(m_crntPID);
     if (res.isEmpty()){
         auto msg = QString("ProcProvider::procPath() %1/%2 FAILED")
@@ -206,12 +208,14 @@ QVariant ProcProvider::data(const QModelIndex & index, int role) const {
         return (proc.qcomm);
     else if (role == MemRole)
         return humanMem(proc.mem);
-    else if (role == Th_allRole)
-        return proc.th_all;
     else if (role == VmRole)
         return proc.vm;
+    else if (role == Th_allRole)
+        return proc.th_all;
     else if (role == Th_activeRole)
         return proc.th_active;
+    else if (role == Th_strRole)
+        return QString::number(proc.th_all) + (proc.th_active == 0 ? "" : ("/"+ QString::number(proc.th_active)));
     else if (role == TmRole)
         return QDateTime::fromSecsSinceEpoch(proc.tm).toString(Qt::ISODate);
     else return QVariant();
@@ -226,6 +230,7 @@ QHash<int, QByteArray> ProcProvider::roleNames() const {
     roles[VmRole] = "vm";
     roles[Th_allRole] = "th_all";
     roles[Th_activeRole] = "th_active";
+    roles[Th_strRole] = "th_str";
     roles[TmRole] = "tm";
     return roles;
 }

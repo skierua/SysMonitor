@@ -67,7 +67,8 @@ T.ItemDelegate {
                            * root.ListView.view.headerItem.children[0].children[4].width
                            / root.ListView.view.headerItem.children[0].width
                            - 2      //parent.anchors.rightMargin
-                    text: root.model.th_all + "/" + root.model.th_active
+                    text: root.model.th_str
+                    // text: root.model.th_all + "/" + root.model.th_active
                     horizontalAlignment: Text.AlignHCenter
                 }
 
@@ -88,9 +89,15 @@ T.ItemDelegate {
             anchors.fill: parent
             onClicked: (mouse) => {
                 // console.log("T.ItemDelegate clicked pid =" +root.model.pid + " index="+ root.row )
-                root.ListView.view.model.crntPID = root.model.pid
-                root.ListView.view.currentIndex = root.row
-                if (mouse.modifiers & Qt.ShiftModifier) openContextMenu()
+                if (root.ListView.view.model.crntPID !== root.model.pid) {
+                   root.ListView.view.model.crntPID = root.model.pid
+                   // should set the currentIndex becouse Providet set it in a second
+                   root.ListView.view.currentIndex = root.row
+                   if (mouse.modifiers & Qt.ShiftModifier) openContextMenu()
+                } else {
+                    root.ListView.view.currentIndex = -1
+                   root.ListView.view.model.crntPID = 0
+                }
             }
             // onDoubleClicked: {
             //     // console.log("T.ItemDelegate clicked pid =" +root.model.pid + " index="+ root.row )

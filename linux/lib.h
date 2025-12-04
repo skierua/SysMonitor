@@ -24,6 +24,11 @@ int getCrntEUID(){
     return geteuid();
 }
 
+// blank function
+int lastErrNo(){
+    return 0;
+}
+
 
 int canTerminate(int pid) {
     return -1;

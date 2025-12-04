@@ -18,7 +18,19 @@ GraphsView {
     function dbg(str, code ="") {
         console.log( String("%1:[MemView.qml] %2").arg(code).arg(str));
     }
-
+    // theme: GraphsTheme {
+        // baseGradients: [ Gradient {
+        //     GradientStop { position: 1.0; color: "#DBEB00" }
+        //     GradientStop { position: 0.0; color: "#373F26" }
+        // } ]
+        // seriesColors: ["salmon"]
+        // colorStyle: GraphsTheme.ColorStyle.Uniform
+        // colorStyle: GraphsTheme.ColorStyle.ObjectGradient
+        // colorStyle: GraphsTheme.ColorStyle.RangeGradient
+        // gridVisible: false
+        // grid.mainColor: "red"
+        // grid.subColor: "blue"
+    // }
     axisX: ValueAxis {
         min:-60
         max: 0
@@ -33,9 +45,17 @@ GraphsView {
         gridVisible: false
         lineVisible: false
     }
+
     LineSeries {
         id: memUsage
         // color: "tomato"
         color: "salmon"
     }
+
+    // AreaSeries{
+    //     opacity: 0.2
+    //     upperSeries: LineSeries {
+    //         id: memUsage
+    //     }
+    // }
 }

@@ -44,6 +44,11 @@ int getCrntEUID(){
     // return geteuid();
 }
 
+// blank function
+int lastErrNo(){
+    return 0;
+}
+
 int canTerminate(int pid) {
     HANDLE hpr = OpenProcess(PROCESS_TERMINATE, FALSE, static_cast<DWORD>(pid));
     if (hpr == NULL) return -1;

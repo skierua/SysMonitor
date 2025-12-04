@@ -44,7 +44,7 @@ void Logger::log(const QString &msg, int type =0)
     }
     QString str = m_template
                       .arg(lvl
-                        , QDateTime::currentDateTime().toString("yyyy/MM/ddThh:mm:ss")
+                        , QDateTime::currentDateTime(QTimeZone::UTC).toString("yyyy/MM/ddThh:mm:ss.zZ")
                         , (msg.isEmpty() ? "BLANK message" : msg));
 
     QTextStream out(&logFile);

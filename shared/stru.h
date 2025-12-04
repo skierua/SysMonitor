@@ -4,6 +4,7 @@
 #include <vector>
 // #include <QMetaType>
 #include <QList>
+#include <QString>
 
 #define VK_MAXCOMLEN       16              /* max command name remembered */
 
@@ -11,6 +12,7 @@ struct vk_proc_info {
     int pid{0};
     int ppid{0};
     std::string comm;
+    QString qcomm;
     unsigned int mem{0};
     unsigned int vm{0};
     int th_all{0};

@@ -10,6 +10,8 @@
 #include <sys/sysctl.h> // For sysctl() and related definitions
 #include <mach/mach.h>  // for host_statistics64
 
+#include <QString>
+
 #include "../shared/stru.h"
 
 // using std::vector;
@@ -22,6 +24,16 @@ std::string sysLogPath()
 
 int getCrntEUID(){
     return geteuid();
+}
+
+int canTerminate(int pid) {
+    if (pid < 2) return -1;
+
+    return kill(pid,0);
+    // errno
+    // ESRCH no such process(pid doesn't exist
+    // EPERM no permission
+    // EINVAL invalid signal
 }
 
 
@@ -82,7 +94,7 @@ std::vector<vk_proc_info> getProc(){
         res.push_back(vk_proc_info());
         res[res.size()-1].pid = processes[i].kp_proc.p_pid;
         res[res.size()-1].ppid = 0;
-        res[res.size()-1].comm = processes[i].kp_proc.p_comm;
+        res[res.size()-1].comm = QString(processes[i].kp_proc.p_comm);
         res[res.size()-1].mem = procInfo.pti_resident_size;
         res[res.size()-1].vm = procInfo.pti_virtual_size;
         res[res.size()-1].th_all = procInfo.pti_threadnum;

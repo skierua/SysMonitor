@@ -37,6 +37,10 @@ public:
     void setProcPath(std::function<QString(int)> fn){
         m_procPath = std::move(fn); }
 
+    // func for credentials to terminate process
+    void setProcCanTerm(std::function<int(int)> fn){
+        m_procCanTerm = std::move(fn); }
+
     // func for terminate process
     void setProcTerm(std::function<int(int)> fn){
         m_procTerm = std::move(fn); }
@@ -49,9 +53,10 @@ public:
     Q_INVOKABLE bool terminate() ;          // terminate current
     Q_INVOKABLE QString procPath();   // path for current
     Q_INVOKABLE int getPID(int row) const { return m_procList[row].pid; }
-    Q_INVOKABLE bool canTerminate(int row) const
-    { return (m_crntPID != 0
-               && (m_crntEUID == 0 || m_crntEUID == m_procList[row].uid)); }
+    Q_INVOKABLE bool canTerminate() const
+    { return m_procCanTerm(m_crntPID) == 0; }
+    // { return true || (m_crntPID != 0
+    //            && (m_crntEUID == 0 || m_crntEUID == m_procList[row].uid)); }
 
     // populate model
     void addProcList(VProcInfoList&& proc);
@@ -96,6 +101,9 @@ private:
 
     std::function<int(int)> m_procTerm = [](int){
         return -1; };
+    std::function<int(int)> m_procCanTerm = [](int){
+        return -1; };
+
     QString humanMem(unsigned int mem) const;   // RAM size in B/kB/MB/GB
 
     void prnProc(std::vector<vk_proc_info>) const;  // in test purpose

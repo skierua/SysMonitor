@@ -202,7 +202,8 @@ QVariant ProcProvider::data(const QModelIndex & index, int role) const {
     if (role == PidRole)
         return proc.pid;
     else if (role == CommRole)
-        return QString::fromStdString(proc.comm);
+        // return QString::fromStdString(proc.comm);
+        return (proc.qcomm);
     else if (role == MemRole)
         return humanMem(proc.mem);
     else if (role == Th_allRole)

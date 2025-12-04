@@ -79,7 +79,7 @@ bool Logger::checkPath()
         if (!dir.exists()) {
             if (!dir.mkdir(m_sysLogPath)) {
                 ok &= false;
-                m_lastError = QString("System Log dir not exist and can't be created .");
+                m_lastError = QString("System Log dir not exist and can't be created(%1) .").arg(m_sysLogPath);
                 // throw std::invalid_argument("AppLog dir not exist and can't be created .");
             }
         }

@@ -6,11 +6,16 @@ beta, ready to use
 - Tahoe
 - clang version 17.0.0 (clang-1700.4.4.1)
 - Qt 6.10.0 for Desktop
-
+- CMake 3.27.7(Qt)
 
 
 ### Windows ###
 not ready yet
+- Win10
+    - MinGW 13.1.0 64-bit for c++ - it almoste works )) Unfortunautly unstable
+    - MSVC2022 64bit
+- Qt 6.10.0 for Desktop
+- CMake 3.27.7(Qt)
 
 ### Linux ###
 not ready yet
@@ -18,6 +23,12 @@ not ready yet
 
 ### Features ###
 
-- info about user's processes
+- info about processes (permited)
+    - PID
+    - executable's name
+    - executable's full system peth
+    - RAM usage
+    - thread open/active
+    - start up time
 - possibility to terminate processes (Shift+MouseLeft)
 - last minute RAM average usage chart

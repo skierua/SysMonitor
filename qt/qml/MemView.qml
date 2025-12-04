@@ -10,7 +10,7 @@ GraphsView {
     Connections{
         target: dataProvider
         function onUsageChanged(v){
-            // dbg("onUsageChanged data=" + v[v.length-1])
+            // dbg("onUsageChanged data=" + v[v.length-1] + " RAM=" + ( dataProvider.totalRAM / 1024))
             memUsage.clear()
             memUsage.append(v)
         }

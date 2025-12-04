@@ -25,6 +25,10 @@ int getCrntEUID(){
 }
 
 
+int canTerminate(int pid) {
+    return -1;
+}
+
 int termProc(int pid){
     return -1;
     /*

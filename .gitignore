@@ -79,6 +79,7 @@ CMakeLists.txt.user*
 .pch/
 .rcc/
 .uic/
+.qtcreator/
 /build*/
 /bu/
 /test/

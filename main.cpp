@@ -15,16 +15,18 @@
 // #include "shared/TempLib.h"
 
 // #include "macos/macmonitor.h"
-#include "macos/lib.h"
 // #include "test/testmac.h"
 
 #if defined(__APPLE__)
 // static_assert(false, "MacOS is not supported");
+#include "macos/lib.h"
 namespace SML = MacLib;
 #elif defined(__linux__)
 static_assert(false, "Linux is not supported");
 #elif defined(_WIN64)
-static_assert(false, "Windows/WIN64 is not supported");
+// static_assert(false, "Windows/WIN64 is not supported");
+#include "winos/lib.h"
+namespace SML = WinLib;
 #else
 static_assert(false, "Target OS is not supported");
 #endif
@@ -47,6 +49,7 @@ int main(int argc, char *argv[])
     // std::cout << MacMonitor::getSelf().crntEUID() << std::endl;
     ProcProvider procProvider;
     procProvider.setProcPath(SML::getProcPath);
+    procProvider.setProcCanTerm(SML::canTerminate);
     procProvider.setProcTerm(SML::termProc);
 
     MemProvider memProvider;

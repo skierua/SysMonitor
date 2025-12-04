@@ -22,7 +22,7 @@ public:
     bool isValid() const
     { return m_valid; }
 
-    bool consoleMode(bool mode)
+    void consoleMode(bool mode)
     { m_toConsole = mode; }
 
     const QString lastError() const { return m_lastError; }

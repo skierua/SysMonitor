@@ -4,7 +4,7 @@
 // #include <iostream>
 #include <vector>
 #include <cerrno>
-#include <cstdint>
+// #include <cstdint>
 #include <libproc.h>
 #include <unistd.h>
 #include <signal.h> // For kill()
@@ -27,6 +27,7 @@ int getCrntEUID(){
     return geteuid();
 }
 
+// not used
 int lastErrNo(){
     return errno;
 }
@@ -34,11 +35,14 @@ int lastErrNo(){
 int canTerminate(int pid) {
     if (pid < 2) return -1;
 
-    return kill(pid,0);
+    return kill(pid, 0);
     // errno
     // ESRCH no such process(pid doesn't exist
     // EPERM no permission
     // EINVAL invalid signal
+
+    // isn't better approach ???
+    // geteuid() == 0 || geteuid() == pid
 }
 
 
@@ -63,10 +67,9 @@ int termProc(int pid){
 
 // deprecated
 // sysctl based
-std::vector<vk_proc_info> getProc(){
+/*std::vector<vk_proc_info> getProc(){
     int mib[4]; // Management Information Base (MIB) array
     size_t len;
-    // vector<vk_proc_info> res;
     std::vector<vk_proc_info> res;
 
     mib[0] = CTL_KERN;
@@ -108,18 +111,11 @@ std::vector<vk_proc_info> getProc(){
         res[res.size()-1].th_active = procInfo.pti_numrunning;
         res[res.size()-1].tm = processes[i].kp_proc.p_starttime.tv_sec;
         res[res.size()-1].uid = processes[i].kp_eproc.e_pcred.p_ruid; // Real UID
-        // std::cout << "PID: " << res.back().pid
-        //           << ", comm: " << res.back().comm
-        //           << ",\tmem=" << res.back().mem << "/" << res.back().vm
-        //           << ",\tth=" << res.back().th_all << "/" << res.back().th_active
-        //           << ",\ttm=" << (procInfo.pti_total_user + procInfo.pti_total_system)/1e9
-        //           << ",\ttm=" << res.back().tm
-        //           << std::endl;
     }
 
-    // std::sort(res.begin(), res.end(), [](vk_proc_info a,vk_proc_info b){ return a.mem > b.mem;});
     return std::move(res);
 }
+*/
 
 // procinfo.h based
 VProcInfoList getProcList(){
@@ -176,11 +172,9 @@ QString getProcPath(int pid) {
 
     if (ret > 0) {
         // ret is the length of the path string
-        // return std::string(buffer.data());
         return QString(buffer.data());
     } else {
         // Error handling: process not found, permission denied, etc.
-        // perror("proc_pidpath failed");
         return QString("");
     }
 }
@@ -193,7 +187,7 @@ uint64_t getRAMSize() {
     mib[0] = CTL_HW;
     mib[1] = HW_MEMSIZE;
     if (sysctl(mib, 2, &res, &len, NULL, 0) == -1) {
-        // std::cerr << "1 sysctl (len):" << std::strerror(errno) << std::endl;
+        // error
         return 0;
     }
 

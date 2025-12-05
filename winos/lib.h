@@ -1,7 +1,7 @@
 #ifndef LIB_H
 #define LIB_H
 
-#include <iostream>
+// #include <iostream>
 #include <string>
 #include <vector>
 #include <windows.h>
@@ -35,7 +35,7 @@ struct TreadCount {
 };
 
 std::string sysLogPath()
-// { return "~Library/Logs"; }
+// { return "/Users/Default"; } for win ???
 { return "./Logs"; }    // default for testing
 
 // deprecated
@@ -81,28 +81,6 @@ int termProc(int pid){
         }, reinterpret_cast<LPARAM>(&data));
         return PostMessage(data.hwnd, WM_CLOSE, 0, 0) != 0;
     };
-
-/*
- *  auto closeGui_v2 = [](DWORD lpid) {
-     bool success = false;
-     HWND toClose_hwnd = NULL; // mainWindow for process pid
-     std::cout << "closeGui" << std::endl;
-     EnumWindows([](HWND crnt_hwnd, LPARAM lParam) -> BOOL {
-         // auto& data = *reinterpret_cast<HWND*>(lParam);
-         DWORD wPID;
-         GetWindowThreadProcessId(crnt_hwnd, &wPID);
-         std::cout << "closeGui wPID=" << wPID << " lParam=" << *(reinterpret_cast<DWORD*>(lParam)) << std::endl;
-
-         if (wPID == *(reinterpret_cast<DWORD*>(lParam)) ) {
-             if (IsWindowVisible(crnt_hwnd) && GetWindowTextLength(crnt_hwnd) > 0 && GetParent(crnt_hwnd) == NULL){
-                 PostMessage(crnt_hwnd, WM_CLOSE, 0, 0) != 0;
-                 return false;
-             }
-         }
-         return TRUE;
-     }, reinterpret_cast<LPARAM>(&lpid));
-     return success;
- }; */
 
 
     // Gracefully close console process
@@ -157,13 +135,10 @@ VProcInfoList getProcList(){
     THREADENTRY32 te32;
     te32.dwSize = sizeof(THREADENTRY32);
 
-    // bool ok{true};
-
     DWORD dwPriorityClass;
 
     // Take a snapshot of all processes in the system.
     hProcessSnap = CreateToolhelp32Snapshot( TH32CS_SNAPPROCESS, 0 );
-    // ok &= (hProcessSnap != INVALID_HANDLE_VALUE);
     if( hProcessSnap == INVALID_HANDLE_VALUE )
     {
         // std::cerr << "CreateToolhelp32Snapshot (of processes)" << std::endl;
@@ -180,7 +155,6 @@ VProcInfoList getProcList(){
 
 
     // Retrieve information about the first process,
-    // and exit if unsuccessful
     if( !Process32First( hProcessSnap, &pe32 ) )
     {
         // printError( TEXT("Process32First") ); // show cause of failure
@@ -190,6 +164,7 @@ VProcInfoList getProcList(){
         return std::move(res);
     }
 
+    // unused
     auto lthread = [&hThreadSnap, &te32](auto lpid/*, auto& th*/){
         TreadCount th;
         std::cout << "auto lthread lpid=" << lpid << std::endl;
@@ -217,16 +192,12 @@ VProcInfoList getProcList(){
         return th;
     };
 
-    // Now walk the snapshot of processes, and
-    // display information about each process in turn
+    // get information about each process
     PROCESS_MEMORY_COUNTERS mem;
     FILETIME creationTime, exitTime, kernelTime, userTime;
-    // SYSTEMTIME tmUTC, stLocal;
-    // time_t epocTime;
     do
     {
         vk_proc_info vpri;
-        // std::vector<char> buffer(MAX_PATH +1);
 
         // Retrieve the priority class.
         dwPriorityClass = 0;
@@ -234,6 +205,7 @@ VProcInfoList getProcList(){
         if( hProcess == NULL ){
             // printError( TEXT("OpenProcess") );
         // std::cout << "OpenProcess" << std::endl;
+            continue;
         } else {
             dwPriorityClass = GetPriorityClass( hProcess );
             if( !dwPriorityClass ){
@@ -272,12 +244,6 @@ VProcInfoList getProcList(){
         vpri.tm = (uliTime.QuadPart / WIN_TICK_COEF) - WIN_EPOC_DIFF;
         vpri.uid = 0;
         res << vpri;
-        // std::cout << "ID="<< pe32.th32ProcessID
-        //           // << " comm="<< _tprintf( TEXT("\nPROCESS NAME:  %s"), pe32.szExeFile
-        //            << " Thr="<< pe32.cntThreads
-        //           << " PIr="<< pe32.th32ParentProcessID
-        //           << " Priority="<< pe32.pcPriClassBase
-        //           << std::endl;
 
     } while( Process32Next( hProcessSnap, &pe32 ) );
 
@@ -286,6 +252,7 @@ VProcInfoList getProcList(){
     return std::move(res);
 }
 
+// empty path when error
 QString getProcPath(int pid) {
     auto res = QString("");
     HANDLE hp = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
@@ -336,7 +303,7 @@ uint64_t getRAMSize() {
     } else {
         // std::cerr << "Error: Unable to retrieve RAM size. Error code: "
         //           << GetLastError() << std::endl;
-        return 1;
+        return 0;
     }
 
     return res * 1024;

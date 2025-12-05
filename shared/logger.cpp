@@ -70,12 +70,13 @@ bool Logger::checkPath()
 {
     auto ok{true};
     auto dir = QDir(m_sysLogPath);
-    // qDebug() << "Logger::Logger dir=" << dir.exists();
+    // qDebug() << "Logger::Logger dir=" << dir.exists() << " cur" << QDir::currentPath();
 
     // if Sys LogDir not exist -- turn to ./Logs in current dit
     if (!dir.exists()) {
-        m_sysLogPath = "./Logs";
-        dir = QDir(m_sysLogPath);
+        // dir.setPath(QDir::currentPath());
+        m_sysLogPath = QDir::currentPath() + "/Logs";
+        dir.setPath(m_sysLogPath);
         if (!dir.exists()) {
             if (!dir.mkdir(m_sysLogPath)) {
                 ok &= false;

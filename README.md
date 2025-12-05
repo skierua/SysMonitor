@@ -12,7 +12,7 @@ beta, ready to use
 ### Windows ###
 beta, ready to use
 - Win10
-    - MinGW 13.1.0 64-bit for c++ - it almost works. Unfortunautly unstable ))s
+    - MinGW 13.1.0 64-bit for c++ - it almost works. Unfortunautly unstable ))
     - MSVC2022 64bit
 - Qt 6.10.0 for Desktop
 - CMake 3.27.7(Qt)
@@ -23,10 +23,10 @@ not ready yet
 
 ### Features ###
 
-- info about processes (permited)
+- info about processes (permitted only)
     - PID
     - executable's name
-    - executable's full system peth
+    - executable's full system path
     - RAM usage
     - thread open/active
     - start up time

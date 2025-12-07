@@ -1,8 +1,7 @@
 // #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-
 #include <QQuickView>
-// #include <QRangeModel>
+
 #include <QDebug>
 
 #include <thread> // For std::this_thread::sleep_for
@@ -14,7 +13,7 @@
 #include "shared/logger.h"
 // #include "shared/TempLib.h"
 
-// #include "macos/macmonitor.h"
+#include "macos/kernelproxy.h"
 // #include "test/testmac.h"
 
 #if defined(__APPLE__)
@@ -37,7 +36,7 @@ int main(int argc, char *argv[])
 
     // std::cout << "Qt Version: " << QT_VERSION_STR << std::endl;
 
-    std::vector<vk_proc_info> procData;
+    // std::vector<vk_proc_info> procData;
     auto logger = Logger( QString::fromStdString(SML::sysLogPath()) );
     if (!logger.isValid()){
         // qFatal("App LOG dir not exist and can't be created.");
@@ -46,7 +45,11 @@ int main(int argc, char *argv[])
     }
 
     logger.log(QString("Application started with logging to %1").arg(logger.logPath()), 1);
-    // std::cout << MacMonitor::getSelf().crntEUID() << std::endl;
+
+    // std::cout
+    //           << KernelProxy::getSelf().test()
+    //           << std::endl;
+
     ProcProvider procProvider;
     procProvider.setProcPath(SML::getProcPath);
     procProvider.setProcCanTerm(SML::canTerminate);
@@ -55,23 +58,22 @@ int main(int argc, char *argv[])
     MemProvider memProvider;
 
     std::atomic<bool> et_working_flag{true};
-
     // execution thread
-    std::thread etProc([&procProvider, &et_working_flag](auto fn_getProcList, auto fn_getCrntEUID){
+    std::thread etProc([&procProvider, &et_working_flag](auto fn_getProcList, auto fn_getCrntEUID, auto sleep){
         procProvider.setEUID(fn_getCrntEUID());
         // int n{0};
         // while (et_working_flag.load(std::memory_order_relaxed) && n < 100) {
         //      ++n;
         while (et_working_flag.load(std::memory_order_relaxed)) {
             procProvider.addProcList(std::move(fn_getProcList()));
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            std::this_thread::sleep_for(std::chrono::milliseconds(sleep));
         }
         // std::cout << "etProc thread stopped." << std::endl;
-    }, SML::getProcList, SML::getCrntEUID);
+    }, SML::getProcList, SML::getCrntEUID, 1000);
     etProc.detach();
 
     // execution thread
-    std::thread etMem([&memProvider, &et_working_flag](auto fn_getRAMUsage, auto fn_getRAMSize){
+    std::thread etMem([&memProvider, &et_working_flag](auto fn_getRAMUsage, auto fn_getRAMSize, auto sleep){
         memProvider.setTotalRAM(fn_getRAMSize());
         // int n{0};
         // while (et_working_flag.load(std::memory_order_relaxed) && n < 100) {
@@ -81,9 +83,9 @@ int main(int argc, char *argv[])
             // auto mem = fn_getRAMUsage();
             // std::cout << "main.cpp data=" << mem/(1024*1024) << "MB" << " =" << mem << std::endl;
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            std::this_thread::sleep_for(std::chrono::milliseconds(sleep));
         }
-    }, SML::getRAMUsage, SML::getRAMSize);
+    }, SML::getRAMUsage, SML::getRAMSize, 1000);
     etMem.detach();
 
     QQmlApplicationEngine engine;

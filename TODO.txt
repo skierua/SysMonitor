@@ -1,12 +1,12 @@
 2025-12-03
 win MSVC2022
- - ScrollBar.vertical for proc view isn't visible. Probably is's system's depended behavior
+ - ScrollBar.vertical for proc view isn't visible. Probably it's system's depended behavior
  + DONE 2025-12-05 - Failed to retrieve process path. After terminate process
 
 2025-12-01
 win MSVC2022
-  - Logger::checkPath() doesn't create default folder. Може розгортати до повного шляху ?
+  + DONE 2025-12-05 - Logger::checkPath() doesn't create default folder. Може розгортати до повного шляху ?
     It works properly on macOS
 
 2025-11-26
-  + 2025-12-05 - compress archive file duaring log rotation. Qt/qCompress compression is not properly supported by OS. It needs using extra library
+  + DONE 2025-12-05 - compress archive file duaring log rotation. Qt/qCompress compression is not properly supported by OS. It needs using extra library

@@ -1,7 +1,8 @@
 #ifndef TEMPLIB_H
 #define TEMPLIB_H
 
-#include <QByteArray>
+// #include <QByteArray>
+#include "./stru.h"
 
 // currently not used
 
@@ -20,6 +21,15 @@ template <typename Derived>
 class StaticBase {
 public:
     int test() { return impl()->test(); }
+
+    int crntEUID() const { return impl()->crntEUID(); }
+    int canTerminate(int pid) { return impl()->canTerminate(pid); }
+    int termProc(int pid) { return impl()->termProc(pid); }
+    VProcInfoList procList() { return impl()->procList(); }
+    QString procPath(int pid) { return impl()->procPath(pid); }
+    uint64_t sizeRAM() { return impl()->sizeRAM(); }
+    uint64_t usageRAM() { return impl()->usageRAM(); }
+    const QString& lastError() { return impl()->lastError(); }
 
 protected:
     // The key to making it "static" and non-instantiable:

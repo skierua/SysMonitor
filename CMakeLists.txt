@@ -12,7 +12,8 @@ set(QML_INCLUDES
 find_package(Qt6 REQUIRED COMPONENTS Quick)
 find_package(Qt6 REQUIRED COMPONENTS Core)
 find_package(Qt6 REQUIRED COMPONENTS Graphs)
-# find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Charts)
+
 # find_package(Qt6 REQUIRED COMPONENTS Core)
 # find_package(Qt6 REQUIRED COMPONENTS Core)
 
@@ -26,7 +27,7 @@ qt_add_qml_module(appSysMonitor
     VERSION 1.0
     QML_FILES
         qt/qml/Main.qml
-        # SOURCES shared/TempLib.h
+        SOURCES shared/TempLib.h
         # SOURCES test/testmac.h test/testmac.cpp
         SOURCES shared/stru.h
         SOURCES shared/procprovider.h shared/procprovider.cpp
@@ -43,6 +44,7 @@ qt_add_qml_module(appSysMonitor
         RESOURCES .gitignore
         SOURCES winos/lib.h
         SOURCES linux/lib.h
+        SOURCES macos/kernelproxy.h macos/kernelproxy.cpp
 )
 
 # qt_add_qml_module(appSysMonitor
@@ -69,6 +71,7 @@ set_target_properties(appSysMonitor PROPERTIES
 target_link_libraries(appSysMonitor PRIVATE Qt6::Quick)
 target_link_libraries(appSysMonitor PRIVATE Qt6::Core)
 target_link_libraries(appSysMonitor PRIVATE Qt6::Graphs)
+target_link_libraries(appSysMonitor PRIVATE Qt6::Charts)
 # target_link_libraries(appSysMonitor PRIVATE Qt6::Core)
 # target_link_libraries(appSysMonitor PRIVATE Qt6::Core)
 # target_link_libraries(appSysMonitor PRIVATE Qt6::Core)

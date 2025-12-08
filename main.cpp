@@ -30,6 +30,11 @@ namespace SML = WinLib;
 static_assert(false, "Target OS is not supported");
 #endif
 
+using std::make_unique;
+#define SM_PROC_REFRESH 1000 // milisecnd
+#define SM_MEM_REFRESH 1000 // milisecnd
+
+
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
@@ -54,44 +59,44 @@ int main(int argc, char *argv[])
     procProvider.setProcPath(SML::getProcPath);
     procProvider.setProcCanTerm(SML::canTerminate);
     procProvider.setProcTerm(SML::termProc);
+    procProvider.setEUID(SML::getCrntEUID());
 
-    MemProvider memProvider;
+    auto memProvider = std::make_unique<MemProvider>();
+
+    // MemProvider memProvider;
+    memProvider->setTotalRAM(KernelProxy::getSelf().sizeRAM());
 
     std::atomic<bool> et_working_flag{true};
     // execution thread
-    std::thread etProc([&procProvider, &et_working_flag](auto fn_getProcList, auto fn_getCrntEUID, auto sleep){
-        procProvider.setEUID(fn_getCrntEUID());
-        // int n{0};
-        // while (et_working_flag.load(std::memory_order_relaxed) && n < 100) {
-        //      ++n;
+    std::thread etProc([&procProvider, &et_working_flag]( auto sleep){
         while (et_working_flag.load(std::memory_order_relaxed)) {
-            procProvider.addProcList(std::move(fn_getProcList()));
+            procProvider.addProcList(std::move(KernelProxy::getSelf().procList()));
             std::this_thread::sleep_for(std::chrono::milliseconds(sleep));
         }
         // std::cout << "etProc thread stopped." << std::endl;
-    }, SML::getProcList, SML::getCrntEUID, 1000);
+    }, SM_PROC_REFRESH);
     etProc.detach();
 
     // execution thread
-    std::thread etMem([&memProvider, &et_working_flag](auto fn_getRAMUsage, auto fn_getRAMSize, auto sleep){
-        memProvider.setTotalRAM(fn_getRAMSize());
+    std::thread etMem([&memProvider, &et_working_flag]( auto sleep){
+        // memProvider.setTotalRAM(fn_getRAMSize());
         // int n{0};
         // while (et_working_flag.load(std::memory_order_relaxed) && n < 100) {
         //      ++n;
         while (et_working_flag.load(std::memory_order_relaxed)) {
-            memProvider.addData(fn_getRAMUsage());
+            memProvider->addData(KernelProxy::getSelf().usageRAM());
             // auto mem = fn_getRAMUsage();
             // std::cout << "main.cpp data=" << mem/(1024*1024) << "MB" << " =" << mem << std::endl;
 
             std::this_thread::sleep_for(std::chrono::milliseconds(sleep));
         }
-    }, SML::getRAMUsage, SML::getRAMSize, 1000);
+    }, SM_MEM_REFRESH);
     etMem.detach();
 
     QQmlApplicationEngine engine;
     engine.setInitialProperties({
         { "procProvider", QVariant::fromValue(&procProvider) }
-        , { "memProvider", QVariant::fromValue(&memProvider) }
+        , { "memProvider", QVariant::fromValue(&(*memProvider)) }
     });
 
     QObject::connect(

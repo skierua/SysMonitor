@@ -2,8 +2,11 @@
 #define KERNELPROXY_H
 
 #include <iostream>
+#include <cerrno>
 #include <libproc.h> // Include for macOS specific functions
 #include <sys/sysctl.h> // For sysctl() and related definitions
+#include <mach/mach.h>  // for host_statistics64
+#include <signal.h> // For kill()
 #include <sys/types.h>
 #include <system_error>
 #include <unistd.h>     // geteuid

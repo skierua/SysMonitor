@@ -30,6 +30,8 @@ public:
     uint64_t sizeRAM() { return impl()->sizeRAM(); }
     uint64_t usageRAM() { return impl()->usageRAM(); }
     const QString& lastError() { return impl()->lastError(); }
+    void setLogPath(const QString& path) { return impl()->setLogPath(path); }
+    const QString& logPath() { return impl()->logPath(); }
 
 protected:
     // The key to making it "static" and non-instantiable:

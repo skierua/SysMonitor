@@ -18,14 +18,14 @@
 #if defined(__APPLE__)
 // static_assert(false, "MacOS is not supported");
 #include "macos/lib.h"
-namespace SML = MacLib;
+// namespace SML = MacLib;
 #include "macos/kernelproxy.h"
 #elif defined(__linux__)
 static_assert(false, "Linux is not supported");
 #elif defined(_WIN64)
 // static_assert(false, "Windows/WIN64 is not supported");
 #include "winos/lib.h"
-namespace SML = WinLib;
+// namespace SML = WinLib;
 #else
 static_assert(false, "Target OS is not supported");
 #endif
@@ -42,24 +42,21 @@ int main(int argc, char *argv[])
     // std::cout << "Qt Version: " << QT_VERSION_STR << std::endl;
 
     // std::vector<vk_proc_info> procData;
-    auto logger = Logger( QString::fromStdString(SML::sysLogPath()) );
-    if (!logger.isValid()){
+    auto logger = std::make_unique<Logger>( KernelProxy::getSelf().logPath() );
+    if (!logger->isValid()){
         // qFatal("App LOG dir not exist and can't be created.");
-        qCritical() << logger.lastError();
+        qCritical() << logger->lastError();
         return -1;
     }
 
-    logger.log(QString("Application started with logging to %1").arg(logger.logPath()), 1);
+    logger->log(QString("Application started with logging to %1").arg(logger->logPath()), 1);
 
     // std::cout
-    //           << KernelProxy::getSelf().test()
-    //           << std::endl;
+    //     << "KernelProxy = " << &KernelProxy::getSelf()
+    //     << std::endl;
 
-    ProcProvider procProvider;
-    procProvider.setProcPath(SML::getProcPath);
-    procProvider.setProcCanTerm(SML::canTerminate);
-    procProvider.setProcTerm(SML::termProc);
-    procProvider.setEUID(SML::getCrntEUID());
+    // ProcProvider procProvider;
+    auto procProvider = std::make_unique<ProcProvider>();
 
     auto memProvider = std::make_unique<MemProvider>();
 
@@ -70,7 +67,7 @@ int main(int argc, char *argv[])
     // execution thread
     std::thread etProc([&procProvider, &et_working_flag]( auto sleep){
         while (et_working_flag.load(std::memory_order_relaxed)) {
-            procProvider.addProcList(std::move(KernelProxy::getSelf().procList()));
+            procProvider->addProcList(std::move(KernelProxy::getSelf().procList()));
             std::this_thread::sleep_for(std::chrono::milliseconds(sleep));
         }
         // std::cout << "etProc thread stopped." << std::endl;
@@ -95,7 +92,7 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     engine.setInitialProperties({
-        { "procProvider", QVariant::fromValue(&procProvider) }
+        { "procProvider", QVariant::fromValue(&(*procProvider)) }
         , { "memProvider", QVariant::fromValue(&(*memProvider)) }
     });
 
@@ -122,10 +119,10 @@ int main(int argc, char *argv[])
         // qDebug() << "Cleanup complete.";
     });
 
-    QObject::connect(&procProvider, &ProcProvider::message, &logger,  &Logger::log, Qt::QueuedConnection);
+    QObject::connect(procProvider.get(), &ProcProvider::message, logger.get(),  &Logger::log, Qt::QueuedConnection);
 
     // terminate in case of FATAL message
-    QObject::connect(&logger, &Logger::terminate, &app,  &QCoreApplication::quit, Qt::QueuedConnection);
+    QObject::connect(logger.get(), &Logger::terminate, &app,  &QCoreApplication::quit, Qt::QueuedConnection);
 
     engine.loadFromModule("SysMonitor", "Main");
 

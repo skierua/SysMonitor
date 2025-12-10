@@ -104,6 +104,7 @@ Window {
                         }
                         delegate: ProcViewDelegate{
                             onOpenContextMenu: { procContextMenu.popup(); }
+                            onCrntPIDChanged: { footerCrntPath.text = procProvider.procPath(); }
                         }
                         // highlight: ProcViewHighlight{}
                         // highlightFollowsCurrentItem: false
@@ -131,7 +132,6 @@ Window {
                         */
 
                         onCurrentIndexChanged: {
-                            footerCrntPath.text = model.procPath()
                             terminateAction.enabled = model.canTerminate()
                         }
                         onCountChanged: footerTotal.text = String("%1 proc").arg(count)

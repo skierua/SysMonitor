@@ -17,6 +17,7 @@ T.ItemDelegate {
 
     signal openContextMenu()
     // signal openContextMenu(real vx, real vy)
+    signal crntPIDChanged()
 
     background: Rectangle {
         // border.width: control.current ? 2 : Qt.styleHints.accessibility.contrastPreference === Qt.HighContrast ? 1 : 0
@@ -93,6 +94,7 @@ T.ItemDelegate {
                    root.ListView.view.model.crntPID = root.model.pid
                    // should set the currentIndex becouse Providet set it in a second
                    root.ListView.view.currentIndex = root.row
+                   crntPIDChanged() // emit signal
                    if (mouse.modifiers & Qt.ShiftModifier) openContextMenu()
                 } else {
                     root.ListView.view.currentIndex = -1

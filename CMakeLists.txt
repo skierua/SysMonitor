@@ -31,7 +31,7 @@ qt_add_qml_module(appSysMonitor
         # SOURCES test/testmac.h test/testmac.cpp
         SOURCES shared/stru.h
         SOURCES shared/procprovider.h shared/procprovider.cpp
-        SOURCES macos/lib.h
+        # SOURCES macos/lib.h
         SOURCES shared/memprovider.h shared/memprovider.cpp
         SOURCES shared/logger.h shared/logger.cpp
         QML_FILES qt/qml/ProcViewDelegate.qml
@@ -42,8 +42,8 @@ qt_add_qml_module(appSysMonitor
         RESOURCES TODO.txt
         RESOURCES README.md
         RESOURCES .gitignore
-        SOURCES winos/lib.h
-        SOURCES linux/lib.h
+        # SOURCES winos/lib.h
+        # SOURCES linux/lib.h
         SOURCES macos/kernelproxy.h macos/kernelproxy.cpp
 )
 

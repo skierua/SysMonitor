@@ -11,7 +11,7 @@
 struct vk_proc_info {
     int pid{0};
     int ppid{0};
-    std::string comm;
+    // std::string comm;
     QString qcomm;
     unsigned int mem{0};
     unsigned int vm{0};

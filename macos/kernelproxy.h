@@ -31,12 +31,15 @@ public:
     QString procPath(int pid);
     uint64_t sizeRAM();
     uint64_t usageRAM();
-    const QString& lastError();
+    const QString& lastError() { return m_lastError; }
+    void setLogPath(const QString& path) { m_logPath = path; }
+    const QString& logPath() { return m_logPath; }
 
 private:
     static KernelProxy * self;
 
     QString m_lastError{QString("")};
+    QString m_logPath{QString("./Logs")};
     // KernelProxy() = default;
     // KernelProxy(const KernelProxy&)= delete;
     // KernelProxy& operator=(const KernelProxy&)= delete;

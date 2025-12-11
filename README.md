@@ -34,5 +34,6 @@ not ready yet
 - last minute RAM average usage chart
 
 ### Branches ###
-- main: current stable
+- stable: stable
+- main: current beta
 - devel: unstable alpha

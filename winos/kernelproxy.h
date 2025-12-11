@@ -1,15 +1,31 @@
 #ifndef KERNELPROXY_H
 #define KERNELPROXY_H
 
-#include <iostream>
-#include <cerrno>
-#include <libproc.h> // Include for macOS specific functions
-#include <sys/sysctl.h> // For sysctl() and related definitions
-#include <mach/mach.h>  // for host_statistics64
-#include <signal.h> // For kill()
-#include <sys/types.h>
-#include <system_error>
-#include <unistd.h>     // geteuid
+// #include <iostream>
+#include <string>
+#include <vector>
+#include <windows.h>
+#include <inttypes.h>
+#include <tlhelp32.h>
+#include <minwinbase.h>
+#include <iomanip>
+// #include <cstdlib>
+// #include <iomanip>
+#include <psapi.h>
+#include <tchar.h>
+
+#include <QString>
+
+//#include "../shared/stru.h"
+
+// using std::vector;
+
+#ifndef WIN_TICK_COEF   // actialy nano
+#define WIN_TICK_COEF 10000000ULL
+#endif
+#ifndef WIN_EPOC_DIFF
+#define WIN_EPOC_DIFF 11644473600ULL
+#endif
 
 #include "../shared/TempLib.h"
 
@@ -20,11 +36,11 @@ public:
     static KernelProxy & getSelf() {
         static KernelProxy self;
         return self;
-    }
+    };
     ~KernelProxy() noexcept = default;
 
     int test() {return 42;}
-    int crntEUID() { return geteuid(); }
+    int crntEUID() { return -1; }
     int canTerminate(int pid);
     int termProc(int pid);
     VProcInfoList procList();

@@ -17,15 +17,16 @@
 
 #if defined(__APPLE__)
 // static_assert(false, "MacOS is not supported");
-#include "macos/lib.h"
+// #include "macos/lib.h"
 // namespace SML = MacLib;
 #include "macos/kernelproxy.h"
 #elif defined(__linux__)
 static_assert(false, "Linux is not supported");
 #elif defined(_WIN64)
-// static_assert(false, "Windows/WIN64 is not supported");
-#include "winos/lib.h"
+static_assert(false, "Windows/WIN64 is not supported");
+// #include "winos/lib.h"
 // namespace SML = WinLib;
+#include "winos/kernelproxy.h"
 #else
 static_assert(false, "Target OS is not supported");
 #endif
@@ -51,8 +52,11 @@ int main(int argc, char *argv[])
 
     logger->log(QString("Application started with logging to %1").arg(logger->logPath()), 1);
 
+    StaticBase<KernelProxy> *pkrnl = &KernelProxy::getSelf();
     // std::cout
     //     << "KernelProxy = " << &KernelProxy::getSelf()
+    //     << " pkrnl = " << &(*pkrnl)
+    //     << " crntEUID= " << pkrnl->test()
     //     << std::endl;
 
     // ProcProvider procProvider;
@@ -61,13 +65,13 @@ int main(int argc, char *argv[])
     auto memProvider = std::make_unique<MemProvider>();
 
     // MemProvider memProvider;
-    memProvider->setTotalRAM(KernelProxy::getSelf().sizeRAM());
+    memProvider->setTotalRAM(pkrnl->sizeRAM());
 
     std::atomic<bool> et_working_flag{true};
     // execution thread
-    std::thread etProc([&procProvider, &et_working_flag]( auto sleep){
+    std::thread etProc([&procProvider, &et_working_flag, &pkrnl]( auto sleep){
         while (et_working_flag.load(std::memory_order_relaxed)) {
-            procProvider->addProcList(std::move(KernelProxy::getSelf().procList()));
+            procProvider->addProcList(std::move(pkrnl->procList()));
             std::this_thread::sleep_for(std::chrono::milliseconds(sleep));
         }
         // std::cout << "etProc thread stopped." << std::endl;
@@ -75,13 +79,13 @@ int main(int argc, char *argv[])
     etProc.detach();
 
     // execution thread
-    std::thread etMem([&memProvider, &et_working_flag]( auto sleep){
+    std::thread etMem([&memProvider, &et_working_flag, &pkrnl]( auto sleep){
         // memProvider.setTotalRAM(fn_getRAMSize());
         // int n{0};
         // while (et_working_flag.load(std::memory_order_relaxed) && n < 100) {
         //      ++n;
         while (et_working_flag.load(std::memory_order_relaxed)) {
-            memProvider->addData(KernelProxy::getSelf().usageRAM());
+            memProvider->addData(pkrnl->usageRAM());
             // auto mem = fn_getRAMUsage();
             // std::cout << "main.cpp data=" << mem/(1024*1024) << "MB" << " =" << mem << std::endl;
 
@@ -92,8 +96,8 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     engine.setInitialProperties({
-        { "procProvider", QVariant::fromValue(&(*procProvider)) }
-        , { "memProvider", QVariant::fromValue(&(*memProvider)) }
+        { "procProvider", QVariant::fromValue(procProvider.get()) }
+        , { "memProvider", QVariant::fromValue(memProvider.get()) }
     });
 
     QObject::connect(

@@ -22,7 +22,7 @@ class StaticBase {
 public:
     int test() { return impl()->test(); }
 
-    int crntEUID() const { return impl()->crntEUID(); }
+    int crntEUID() { return impl()->crntEUID(); }
     int canTerminate(int pid) { return impl()->canTerminate(pid); }
     int termProc(int pid) { return impl()->termProc(pid); }
     VProcInfoList procList() { return impl()->procList(); }

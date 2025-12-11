@@ -13,6 +13,18 @@
 
 #include "stru.h"
 
+#if defined(__APPLE__)
+// static_assert(false, "MacOS is not supported");
+#include "../macos/kernelproxy.h"
+#elif defined(__linux__)
+static_assert(false, "Linux is not supported");
+#elif defined(_WIN64)
+static_assert(false, "Windows/WIN64 is not supported");
+namespace SML = WinLib;
+#else
+static_assert(false, "Target OS is not supported");
+#endif
+
 class ProcProvider : public QAbstractListModel
 {
     Q_OBJECT
@@ -30,23 +42,18 @@ public:
 
     // kernel/proclib.h leyer
     // func for processes info retrieving
-    void setProcFn(std::function<std::vector<vk_proc_info>()> fn){
-        m_procFn = std::move(fn); }
 
     // func for processes full system path
-    void setProcPath(std::function<QString(int)> fn){
-        m_procPath = std::move(fn); }
+    // void setProcPath(std::function<QString(int)> fn){
+    //     m_procPath = std::move(fn); }
 
     // func for credentials to terminate process
-    void setProcCanTerm(std::function<int(int)> fn){
-        m_procCanTerm = std::move(fn); }
+    // void setProcCanTerm(std::function<int(int)> fn){
+    //     m_procCanTerm = std::move(fn); }
 
     // func for terminate process
-    void setProcTerm(std::function<int(int)> fn){
-        m_procTerm = std::move(fn); }
-
-    // EUID current app
-    void setEUID(int v) { m_crntEUID = v; }
+    // void setProcTerm(std::function<int(int)> fn){
+    //     m_procTerm = std::move(fn); }
 
 
     // QML adaptors for kernel/proclib.h leyer
@@ -54,7 +61,7 @@ public:
     Q_INVOKABLE QString procPath();   // path for current
     Q_INVOKABLE int getPID(int row) const { return m_procList[row].pid; }
     Q_INVOKABLE bool canTerminate() const
-    { return m_procCanTerm(m_crntPID) == 0; }
+    { return KernelProxy::getSelf().canTerminate(m_crntPID) == 0; }
     // { return true || (m_crntPID != 0
     //            && (m_crntEUID == 0 || m_crntEUID == m_procList[row].uid)); }
 
@@ -89,24 +96,23 @@ private:
     int m_crntPIDIndex{-1};
     // int m_crntPIDAttr{0};       // only for canTerminate
 
-    int m_crntEUID{std::numeric_limits<int>::max()};
+    // int m_crntEUID{std::numeric_limits<int>::max()};
     bool m_lock{false};
     QList<vk_proc_info> m_procList;
 
-    std::vector<vk_proc_info> m_procData;
-    std::function<std::vector<vk_proc_info>()> m_procFn = [](){
-             return std::vector<vk_proc_info>(); };
-    std::function<QString(int)> m_procPath = [](int){
-        return QString(""); };
+    // std::vector<vk_proc_info> m_procData;
 
-    std::function<int(int)> m_procTerm = [](int){
-        return -1; };
-    std::function<int(int)> m_procCanTerm = [](int){
-        return -1; };
+    // std::function<QString(int)> m_procPath = [](int){
+    //     return QString(""); };
+
+    // std::function<int(int)> m_procTerm = [](int){
+    //     return -1; };
+    // std::function<int(int)> m_procCanTerm = [](int){
+    //     return -1; };
 
     QString humanMem(unsigned int mem) const;   // RAM size in B/kB/MB/GB
 
-    void prnProc(std::vector<vk_proc_info>) const;  // in test purpose
+    void prnProc() const;  // in test purpose
 
     void lock(int t =100);  // lock data for update (kind of guard)
     void unlock();

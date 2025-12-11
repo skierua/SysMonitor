@@ -32,3 +32,8 @@ not ready yet
     - start up time
 - possibility to terminate processes (Shift+MouseLeft)
 - last minute RAM average usage chart
+
+### Branches ###
+- stable: stable
+- main: current beta
+- devel: unstable alpha

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(SysMonitor VERSION 0.97 LANGUAGES CXX)
+project(SysMonitor VERSION 1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -14,8 +14,25 @@ find_package(Qt6 REQUIRED COMPONENTS Core)
 find_package(Qt6 REQUIRED COMPONENTS Graphs)
 find_package(Qt6 REQUIRED COMPONENTS Charts)
 
-# find_package(Qt6 REQUIRED COMPONENTS Core)
-# find_package(Qt6 REQUIRED COMPONENTS Core)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    message(STATUS "macOS-specific QML and sources.")
+    # macOS-specific files
+    list(APPEND QML_SOURCES_COMMON macos/kernelproxy.h macos/kernelproxy.cpp)
+
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    message(STATUS "Windows-specific QML and sources.")
+    # Windows-specific files
+    list(APPEND QML_SOURCES_COMMON winos/kernelproxy.h winos/kernelproxy.cpp)
+
+# elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+#     message(STATUS "Linux-specific QML and sources.")
+    # Linux-specific files
+    # list(APPEND QML_SOURCES_COMMON linux_dbus_interface.cpp)
+
+else()
+    message(WARNING "No specific QML files defined for ${CMAKE_SYSTEM_NAME}.")
+endif()
 
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -31,7 +48,7 @@ qt_add_qml_module(appSysMonitor
         # SOURCES test/testmac.h test/testmac.cpp
         SOURCES shared/stru.h
         SOURCES shared/procprovider.h shared/procprovider.cpp
-        SOURCES macos/lib.h
+        # SOURCES macos/lib.h
         SOURCES shared/memprovider.h shared/memprovider.cpp
         SOURCES shared/logger.h shared/logger.cpp
         QML_FILES qt/qml/ProcViewDelegate.qml
@@ -42,9 +59,7 @@ qt_add_qml_module(appSysMonitor
         RESOURCES TODO.txt
         RESOURCES README.md
         RESOURCES .gitignore
-        SOURCES winos/lib.h
-        SOURCES linux/lib.h
-        SOURCES macos/kernelproxy.h macos/kernelproxy.cpp
+        SOURCES ${QML_SOURCES_COMMON}       # Includes the common and OS-specific C++ sources
 )
 
 # qt_add_qml_module(appSysMonitor

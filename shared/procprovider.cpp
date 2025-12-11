@@ -2,12 +2,9 @@
 
 ProcProvider::ProcProvider(QObject *parent)
     : QAbstractListModel{parent}
-{
-    // std::function<std::vector<vk_proc_info>()> m_procFn = [](){
-    //     return std::vector<vk_proc_info>(); };
-    // QObject::connect(this, &ProcProvider::procChanged,
-    //                  this, &ProcProvider::prnProc);
-}
+    // , m_crntEUID{KernelProxy::getSelf().crntEUID()}
+{ }
+
 /*
  * param(t) ms for wait
  */
@@ -20,13 +17,16 @@ void ProcProvider::unlock(){
     m_lock = false;
 }
 
+/*
+ * terminate process for current PID
+ */
 bool ProcProvider::terminate()
 {
     lock(105);
     auto msg = QString("ProcProvider::terminate() %1/%2")
                    .arg(QString::number(m_crntPID),
                         m_procList.at(m_crntPIDIndex).qcomm);
-    int ok = m_procTerm(m_crntPID);
+    int ok = KernelProxy::getSelf().termProc(m_crntPID);
     // qDebug() << "ProcProvider::terminate 1";
     if (ok == 0){
         // to avoid compiler optimiztion
@@ -47,18 +47,25 @@ bool ProcProvider::terminate()
     return ok;
 }
 
+/*
+ * get full system pass process for current PID
+ */
 QString ProcProvider::procPath() {
-    if ((m_crntPID == 0) || (m_crntPIDIndex = -1)) return QString("");
-    QString res = m_procPath(m_crntPID);
+    // qDebug()<< "procPath() pid=" << m_crntPID << " ind=" << m_crntPIDIndex;
+    if (m_crntPID == 0) return QString("");
+    QString res = KernelProxy::getSelf().procPath(m_crntPID);
+    // qDebug()<< " pid=" << m_crntPID << " path=" << res;
     if (res.isEmpty()){
         auto msg = QString("ProcProvider::procPath() %1/%2 FAILED")
-                       .arg(QString::number(m_crntPID),
-                            QString::fromStdString(m_procList.at(m_crntPIDIndex).comm));
+                       .arg(QString::number(m_crntPID), m_procList.at(m_crntPIDIndex).qcomm);
         emit message(msg, 4);
     }
     return res;
 }
 
+/*
+ * ppulate process's list
+ */
 void ProcProvider::addProcList(QList<vk_proc_info> &&proc){
     // to avoid reset until previous not finished
     // TODO std::atomic ?
@@ -69,8 +76,6 @@ void ProcProvider::addProcList(QList<vk_proc_info> &&proc){
         return;
     }
     std::sort(proc.begin(), proc.end(), [](vk_proc_info a,vk_proc_info b){ return a.mem > b.mem;});
-    // beginResetModel();
-    // m_procList.clear();
     m_procList = proc;
     if (proc.size() != m_procList.size()) {
         if (proc.size() > m_procList.size()) {
@@ -98,6 +103,7 @@ void ProcProvider::addProcList(QList<vk_proc_info> &&proc){
                 ,index(m_procList.size()-1,0));
     // for (auto i{0}; i < 30; ++i) addProc(proc[i]);
     unlock();
+    // prnProc();
 }
 
 /*void ProcProvider::start()
@@ -128,28 +134,58 @@ void ProcProvider::addProcList(QList<vk_proc_info> &&proc){
     }
 }*/
 
-void ProcProvider::prnProc(std::vector<vk_proc_info>) const{
+/*
+ * for debugging
+ */
+void ProcProvider::prnProc() const {
     std::cout << "========= prmProc =======" << std::endl;
-    for (auto& v: m_procData){
+    for (const auto& v: m_procList){
         std::cout << "PID: " << v.pid
-                  << ", comm: " << v.comm
+                   << ",\tPPID: " << v.ppid
+                  << ",\tqcomm: " << v.qcomm.toStdString()
                   << ",\tmem=" << v.mem << "/" << v.vm
                   << ",\tth=" << v.th_all << "/" << v.th_active
                   << ",\ttm=" << v.tm
+                  << ",\tuid=" << v.uid
                   << std::endl;
     }
 }
 
-/*void ProcProvider::addProc(const vk_proc_info& proc)
-{
-    beginInsertRows(QModelIndex(), rowCount(), rowCount());
-    m_procList << proc;
-    endInsertRows();
-} */
 
+/*
+ * virtual function redefinition
+ */
 int ProcProvider::rowCount(const QModelIndex & parent) const {
     Q_UNUSED(parent);
     return m_procList.count();
+}
+
+/*
+ * virtual function redefinition
+ */
+QVariant ProcProvider::data(const QModelIndex & index, int role) const {
+    if (index.row() < 0 || index.row() >= m_procList.count())
+        return QVariant();
+
+    const vk_proc_info &proc = m_procList[index.row()];
+    if (role == PidRole)
+        return proc.pid;
+    else if (role == CommRole)
+        // return QString::fromStdString(proc.comm);
+        return (proc.qcomm);
+    else if (role == MemRole)
+        return humanMem(proc.mem);
+    else if (role == VmRole)
+        return proc.vm;
+    else if (role == Th_allRole)
+        return proc.th_all;
+    else if (role == Th_activeRole)
+        return proc.th_active;
+    else if (role == Th_strRole)
+        return QString::number(proc.th_all) + (proc.th_active == 0 ? "" : ("/"+ QString::number(proc.th_active)));
+    else if (role == TmRole)
+        return QDateTime::fromSecsSinceEpoch(proc.tm).toString(Qt::ISODate);
+    else return QVariant();
 }
 
 #if 0
@@ -196,31 +232,6 @@ QVariant ProcProvider::data(const QModelIndex & index, int role) const {
 #endif
 
 // for QML/ListModel
-QVariant ProcProvider::data(const QModelIndex & index, int role) const {
-    if (index.row() < 0 || index.row() >= m_procList.count())
-        return QVariant();
-
-    const vk_proc_info &proc = m_procList[index.row()];
-    if (role == PidRole)
-        return proc.pid;
-    else if (role == CommRole)
-        // return QString::fromStdString(proc.comm);
-        return (proc.qcomm);
-    else if (role == MemRole)
-        return humanMem(proc.mem);
-    else if (role == VmRole)
-        return proc.vm;
-    else if (role == Th_allRole)
-        return proc.th_all;
-    else if (role == Th_activeRole)
-        return proc.th_active;
-    else if (role == Th_strRole)
-        return QString::number(proc.th_all) + (proc.th_active == 0 ? "" : ("/"+ QString::number(proc.th_active)));
-    else if (role == TmRole)
-        return QDateTime::fromSecsSinceEpoch(proc.tm).toString(Qt::ISODate);
-    else return QVariant();
-}
-
 QHash<int, QByteArray> ProcProvider::roleNames() const {
     QHash<int, QByteArray> roles;
     roles[Qt::DisplayRole] = "display";
@@ -235,6 +246,9 @@ QHash<int, QByteArray> ProcProvider::roleNames() const {
     return roles;
 }
 
+/*
+ * human readable memory info
+ */
 QString ProcProvider::humanMem(unsigned int mem) const {
     auto i{1};
     auto pow{1024};

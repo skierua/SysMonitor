@@ -116,34 +116,7 @@ VProcInfoList KernelProxy::procList() {
         return std::move(res);
     }
 
-    // unused
-    auto lthread = [&hThreadSnap, &te32](auto lpid/*, auto& th*/){
-        TreadCount th;
-        std::cout << "auto lthread lpid=" << lpid << std::endl;
-        if (!Thread32First(hThreadSnap, &te32)) {
-            // std::cerr << "Error: Unable to get first thread. Code: " << GetLastError() << "\n";
-            return th;
-        }
-        do {
-            std::cout << "auto lthread Thread32Next lpid=" << lpid << std::endl;
-            if (te32.th32OwnerProcessID == lpid) {
-                // Try opening the thread to check if it's active
-                ++th.total;
-                HANDLE hThread = OpenThread(THREAD_QUERY_INFORMATION, FALSE, te32.th32ThreadID);
-                if (hThread) {
-                    // If we can open it, it's active
-                    ++th.active;
-                    std::cout << "Thread ID: " << te32.th32ThreadID << " (Active)\n";
-                    CloseHandle(hThread);
-                } else {
-                    std::cout << "Thread ID: " << te32.th32ThreadID << " (Not accessible / possibly terminated)\n";
-                }
-            }
-        } while (Thread32Next(hThreadSnap, &te32));
-        // return;
-        return th;
-    };
-
+    
     // get information about each process
     PROCESS_MEMORY_COUNTERS mem;
     FILETIME creationTime, exitTime, kernelTime, userTime;

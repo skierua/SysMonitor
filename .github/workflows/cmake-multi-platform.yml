@@ -62,7 +62,8 @@ jobs:
     
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
-      # with:
+      with:
+        modules: 'qtquick qtcore qtgraphs'
         # version: '6.10.0' # Specify your required Qt version
         # target: 'desktop'
         # Set the environment variable for subsequent steps

@@ -61,10 +61,10 @@ jobs:
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
     
     - name: Install Qt
-      uses: jurplel/install-qt-action@v4
+      uses: jurplel/install-qt-action@v3
       with:
-        modules: 'Qt6Quick3D qtdatavis3d qtgraphs'
-        # version: '6.10.0' # Specify your required Qt version //Qt6Quick3D QtDataVisualization 
+        modules: 'QtDataVisualization qtgraphs'
+        # version: '6.10.0' # Specify your required Qt version //Qt6Quick3D QtDataVisualization qtdatavis3d
         # target: 'desktop'
         # Set the environment variable for subsequent steps
         # aqtversion: '3.1.2'

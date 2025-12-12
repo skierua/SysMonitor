@@ -63,8 +63,8 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
-        modules: 'QtDataVisualization qtgraphs'
-        # version: '6.10.0' # Specify your required Qt version //Qt6Quick3D QtDataVisualization qtdatavis3d
+        modules: 'qtdatavis3d'
+        # version: '6.10.0' # Specify your required Qt version //Qt6Quick3D QtDataVisualization qtdatavis3d qtgraphs
         # target: 'desktop'
         # Set the environment variable for subsequent steps
         # aqtversion: '3.1.2'

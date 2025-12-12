@@ -12,10 +12,6 @@ set(QML_INCLUDES
 find_package(Qt6 REQUIRED COMPONENTS Quick)
 find_package(Qt6 REQUIRED COMPONENTS Core)
 find_package(Qt6 REQUIRED COMPONENTS Graphs)
-find_package(Qt6 REQUIRED COMPONENTS Charts)
-
-# find_package(Qt6 REQUIRED COMPONENTS Core)
-# find_package(Qt6 REQUIRED COMPONENTS Core)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -71,10 +67,7 @@ set_target_properties(appSysMonitor PROPERTIES
 target_link_libraries(appSysMonitor PRIVATE Qt6::Quick)
 target_link_libraries(appSysMonitor PRIVATE Qt6::Core)
 target_link_libraries(appSysMonitor PRIVATE Qt6::Graphs)
-target_link_libraries(appSysMonitor PRIVATE Qt6::Charts)
-# target_link_libraries(appSysMonitor PRIVATE Qt6::Core)
-# target_link_libraries(appSysMonitor PRIVATE Qt6::Core)
-# target_link_libraries(appSysMonitor PRIVATE Qt6::Core)
+
 
 include(GNUInstallDirs)
 install(TARGETS appSysMonitor

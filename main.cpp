@@ -23,7 +23,7 @@
 #elif defined(__linux__)
 static_assert(false, "Linux is not supported");
 #elif defined(_WIN64)
-static_assert(false, "Windows/WIN64 is not supported");
+// static_assert(false, "Windows/WIN64 is not supported");
 // #include "winos/lib.h"
 // namespace SML = WinLib;
 #include "winos/kernelproxy.h"

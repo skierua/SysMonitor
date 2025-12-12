@@ -40,7 +40,7 @@ qt_add_qml_module(appSysMonitor
         RESOURCES .gitignore
         SOURCES winos/lib.h
         SOURCES linux/lib.h
-        SOURCES macos/kernelproxy.h macos/kernelproxy.cpp
+        
 )
 
 # qt_add_qml_module(appSysMonitor

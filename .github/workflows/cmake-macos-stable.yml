@@ -55,5 +55,5 @@ jobs:
       if: success()
       with:
         name: ${{ runner.os }}-app-stable-build
-        path: ${{ github.workspace }}/build/sysMonitor-stable/
+        path: ${{ github.workspace }}/build/
 

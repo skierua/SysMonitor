@@ -61,7 +61,7 @@ jobs:
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
     
     - name: Install Qt
-      uses: jurplel/install-qt-action@v3
+      uses: jurplel/install-qt-action@v4
       # with:
         # version: '6.10.0' # Specify your required Qt version
         # target: 'desktop'

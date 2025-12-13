@@ -58,6 +58,7 @@ qt_add_qml_module(appSysMonitor
         RESOURCES TODO.txt
         RESOURCES README.md
         RESOURCES .gitignore
+        # SOURCES winos/kernelproxy.h winos/kernelproxy.cpp
         SOURCES ${QML_SOURCES_COMMON}       # Includes the common and OS-specific C++ sources
 )
 

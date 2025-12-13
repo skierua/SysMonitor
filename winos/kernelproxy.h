@@ -29,6 +29,44 @@
 
 #include "../shared/TempLib.h"
 
+class ProcHandle {
+
+    HANDLE m_procHandle;
+public:
+    explicit ProcHandle(DWORD pid, DWORD access_flag = PROCESS_ALL_ACCESS) {
+        m_procHandle =OpenProcess(access_flag, FALSE, pid);
+    }
+
+    ~ProcHandle() noexcept {
+        if( isValid() ) CloseHandle(m_procHandle);
+    }
+
+    HANDLE& get() { return m_procHandle; }
+
+    bool isValid() const {
+        return m_procHandle != NULL;
+    }
+};
+
+class SnapHandle {
+
+    HANDLE m_snapHandle;
+public:
+    explicit SnapHandle(DWORD flag = TH32CS_SNAPPROCESS) {
+        m_snapHandle = CreateToolhelp32Snapshot( flag, 0 );
+    }
+
+    ~SnapHandle() noexcept {
+        if( isValid() ) CloseHandle(m_snapHandle);
+    }
+
+    HANDLE& get() { return m_snapHandle; }
+
+    bool isValid() const {
+        return m_snapHandle != INVALID_HANDLE_VALUE;
+    }
+};
+
 class KernelProxy : public StaticBase<KernelProxy>
 {
 
@@ -62,5 +100,10 @@ private:
     // KernelProxy(KernelProxy&&)= delete;
     // KernelProxy& operator=(KernelProxy&&)= delete;
 };
+
+// HANDLE hpr = OpenProcess(PROCESS_TERMINATE, FALSE, static_cast<DWORD>(pid));
+// HANDLE hProcess = OpenProcess( PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID );
+// HANDLE hProcessSnap = CreateToolhelp32Snapshot( TH32CS_SNAPPROCESS, 0 );
+// HANDLE hThreadSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
 
 #endif // KERNELPROXY_H

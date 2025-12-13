@@ -101,9 +101,4 @@ private:
     // KernelProxy& operator=(KernelProxy&&)= delete;
 };
 
-// HANDLE hpr = OpenProcess(PROCESS_TERMINATE, FALSE, static_cast<DWORD>(pid));
-// HANDLE hProcess = OpenProcess( PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID );
-// HANDLE hProcessSnap = CreateToolhelp32Snapshot( TH32CS_SNAPPROCESS, 0 );
-// HANDLE hThreadSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-
 #endif // KERNELPROXY_H

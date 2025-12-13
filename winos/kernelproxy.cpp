@@ -3,10 +3,8 @@
 // KernelProxy::KernelProxy() {}
 
 int KernelProxy::canTerminate(int pid) {
-    // HANDLE hpr = OpenProcess(PROCESS_TERMINATE, FALSE, static_cast<DWORD>(pid));
     auto pr = ProcHandle(static_cast<DWORD>(pid), PROCESS_TERMINATE);
     if (!pr.isValid()) return -1;
-    // CloseHandle(hpr);
     return 0;
 }
 
@@ -80,17 +78,9 @@ VProcInfoList KernelProxy::procList() {
     // std::cout << "WinLib getProc" << std::endl;
     VProcInfoList res;
 
-    // HANDLE hProcessSnap;
-    // Set the structure and size
-    PROCESSENTRY32 pe32;
-    pe32.dwSize = sizeof( PROCESSENTRY32 );
-    // THREADENTRY32 te32;
-    // te32.dwSize = sizeof(THREADENTRY32);
-
     DWORD dwPriorityClass;
 
     // Take a snapshot of all processes in the system.
-    // hProcessSnap = CreateToolhelp32Snapshot( TH32CS_SNAPPROCESS, 0 );
     auto procSnap = SnapHandle(TH32CS_SNAPPROCESS);
     if( !procSnap.isValid() )
     {
@@ -98,23 +88,13 @@ VProcInfoList KernelProxy::procList() {
         return std::move(res);
     }
 
-    // auto threadSnap = SnapHandle(TH32CS_SNAPTHREAD);
-    // // HANDLE hThreadSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-    // // ok &= (hThreadSnap != INVALID_HANDLE_VALUE);
-    // if ( !threadSnap.isValid() ) {
-    //     // std::cerr << "Error: Unable to create thread snapshot. Code: " << GetLastError() << "\n";
-    //     // CloseHandle( hProcessSnap );          // clean the snapshot object
-    //     return std::move(res);
-    // }
-
+    // Set the structure and size
+    PROCESSENTRY32 pe32;
+    pe32.dwSize = sizeof( PROCESSENTRY32 );
 
     // Retrieve information about the first process,
     if( !Process32First( procSnap.get(), &pe32 ) )
     {
-        // printError( TEXT("Process32First") ); // show cause of failure
-        // std::cout << "Process32First" << std::endl;
-        // CloseHandle( hProcessSnap );          // clean the snapshot object
-        // CloseHandle( hThreadSnap );          // clean the snapshot object
         return std::move(res);
     }
 
@@ -129,21 +109,17 @@ VProcInfoList KernelProxy::procList() {
 
         // Retrieve the priority class.
         dwPriorityClass = 0;
-        // hProcess = OpenProcess( PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID );
         auto proc = ProcHandle(pe32.th32ProcessID, PROCESS_ALL_ACCESS);
         if( !proc.isValid() ){
-            // printError( TEXT("OpenProcess") );
-        // std::cout << "OpenProcess" << std::endl;
             continue;
-        } else {
+        } else {    // not actualy used
             dwPriorityClass = GetPriorityClass( proc.get() );
             if( !dwPriorityClass ){
-                // printError( TEXT("GetPriorityClass") );
                 // std::cout << "GetPriorityClass" << std::endl;
-                // CloseHandle( hProcess );
                 continue;
             }
         }
+
         if (GetProcessMemoryInfo(proc.get(), &mem, sizeof(mem))) {
             // std::cout << "Process ID: " << processID << std::endl;
             // std::cout << "Working Set Size: " << mem.WorkingSetSize / 1024 << " KB" << std::endl;
@@ -160,8 +136,6 @@ VProcInfoList KernelProxy::procList() {
             uliTime.LowPart  = creationTime.dwLowDateTime;
             uliTime.HighPart = creationTime.dwHighDateTime;
         }
-        // TreadCount th;
-        // th = lthread(pe32.th32ProcessID);
         vpri.pid = pe32.th32ProcessID;
         vpri.ppid = pe32.th32ParentProcessID;
         // vpri.comm = std::wstring(buffer.data()); //pe32.szExeFile;
@@ -176,14 +150,11 @@ VProcInfoList KernelProxy::procList() {
 
     } while( Process32Next( procSnap.get(), &pe32 ) );
 
-    // CloseHandle(hThreadSnap);
-    // CloseHandle( hProcessSnap );
     return std::move(res);
 }
 
 QString KernelProxy::procPath(int pid) {
     auto res = QString("");
-    // HANDLE hp = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
     auto proc = ProcHandle(static_cast<DWORD>(pid), PROCESS_QUERY_LIMITED_INFORMATION);
 
     if (proc.isValid()) {
@@ -195,7 +166,6 @@ QString KernelProxy::procPath(int pid) {
         } else {
             // std::cerr << "Failed to retrieve process path." << std::endl;
         }
-        // CloseHandle(hp);
     } else {
         // std::cerr << "Failed to open process." << std::endl;
     }
@@ -205,7 +175,6 @@ QString KernelProxy::procPath(int pid) {
 // res =0 for error, but it's not fair enought
 uint64_t KernelProxy::sizeRAM() {
     uint64_t res{0};  // same as unsigned long long
-    // ULONGLONG totalKB = 0;
 
     // Retrieve the amount of physically installed RAM in kilobytes
     if (GetPhysicallyInstalledSystemMemory(&res)) {

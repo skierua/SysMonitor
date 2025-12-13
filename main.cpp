@@ -17,15 +17,11 @@
 
 #if defined(__APPLE__)
 // static_assert(false, "MacOS is not supported");
-// #include "macos/lib.h"
-// namespace SML = MacLib;
 #include "macos/kernelproxy.h"
 #elif defined(__linux__)
 static_assert(false, "Linux is not supported");
 #elif defined(_WIN64)
-static_assert(false, "Windows/WIN64 is not supported");
-// #include "winos/lib.h"
-// namespace SML = WinLib;
+// static_assert(false, "Windows/WIN64 is not supported");
 #include "winos/kernelproxy.h"
 #else
 static_assert(false, "Target OS is not supported");

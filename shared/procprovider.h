@@ -20,8 +20,8 @@
 static_assert(false, "Linux is not supported");
 #elif defined(_WIN64)
 // static_assert(false, "Windows/WIN64 is not supported");
+#include "../winos/kernelproxy.h"
 // namespace SML = WinLib;
-#include "winos/kernelproxy.h"
 #else
 static_assert(false, "Target OS is not supported");
 #endif

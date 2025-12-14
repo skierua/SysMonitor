@@ -17,15 +17,11 @@
 
 #if defined(__APPLE__)
 // static_assert(false, "MacOS is not supported");
-// #include "macos/lib.h"
-// namespace SML = MacLib;
 #include "macos/kernelproxy.h"
 #elif defined(__linux__)
 static_assert(false, "Linux is not supported");
 #elif defined(_WIN64)
 // static_assert(false, "Windows/WIN64 is not supported");
-// #include "winos/lib.h"
-// namespace SML = WinLib;
 #include "winos/kernelproxy.h"
 #else
 static_assert(false, "Target OS is not supported");
@@ -44,6 +40,7 @@ int main(int argc, char *argv[])
 
     // std::vector<vk_proc_info> procData;
     auto logger = std::make_unique<Logger>( KernelProxy::getSelf().logPath() );
+    // auto logger = std::make_unique<Logger>( "./Logs" );
     if (!logger->isValid()){
         // qFatal("App LOG dir not exist and can't be created.");
         qCritical() << logger->lastError();

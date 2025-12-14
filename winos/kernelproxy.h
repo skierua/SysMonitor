@@ -29,6 +29,44 @@
 
 #include "../shared/TempLib.h"
 
+class ProcHandle {
+
+    HANDLE m_procHandle;
+public:
+    explicit ProcHandle(DWORD pid, DWORD access_flag = PROCESS_ALL_ACCESS) {
+        m_procHandle =OpenProcess(access_flag, FALSE, pid);
+    }
+
+    ~ProcHandle() noexcept {
+        if( isValid() ) CloseHandle(m_procHandle);
+    }
+
+    HANDLE& get() { return m_procHandle; }
+
+    bool isValid() const {
+        return m_procHandle != NULL;
+    }
+};
+
+class SnapHandle {
+
+    HANDLE m_snapHandle;
+public:
+    explicit SnapHandle(DWORD flag = TH32CS_SNAPPROCESS) {
+        m_snapHandle = CreateToolhelp32Snapshot( flag, 0 );
+    }
+
+    ~SnapHandle() noexcept {
+        if( isValid() ) CloseHandle(m_snapHandle);
+    }
+
+    HANDLE& get() { return m_snapHandle; }
+
+    bool isValid() const {
+        return m_snapHandle != INVALID_HANDLE_VALUE;
+    }
+};
+
 class KernelProxy : public StaticBase<KernelProxy>
 {
 
@@ -36,7 +74,7 @@ public:
     static KernelProxy & getSelf() {
         static KernelProxy self;
         return self;
-    };
+    }
     ~KernelProxy() noexcept = default;
 
     int test() {return 42;}

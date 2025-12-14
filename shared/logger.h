@@ -14,10 +14,12 @@ class Logger : public QObject
 {
     Q_OBJECT
 public:
-    enum SMLOG {NOLOG =0, INFO =1, WARN =2, ERROR =4, FATAL =8} ;
-    explicit Logger(QObject *parent = nullptr);
+    enum class SMLOG {ENOLOG =0, EINFO =1, EWARN =2, EERROR =4, EFATAL =8} ;
+
+    Logger(QObject *parent = nullptr);
     explicit Logger(const QString& sysLogPath, QObject *parent = nullptr);
-    ~Logger() =default;
+
+    // ~Logger() noexcept =default;
 
     bool isValid() const
     { return m_valid; }
@@ -36,7 +38,7 @@ public slots:
 
 
 private:
-    int m_level{SMLOG::INFO | SMLOG::FATAL | SMLOG::ERROR};
+    int m_level{static_cast<int>(SMLOG::EINFO) | static_cast<int>(SMLOG::EFATAL) | static_cast<int>(SMLOG::EERROR)};
 
     unsigned long long m_logMaxSize{1 * 1024 * 1024};
     // duplicate log to consol

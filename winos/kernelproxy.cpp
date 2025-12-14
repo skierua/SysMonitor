@@ -3,9 +3,8 @@
 // KernelProxy::KernelProxy() {}
 
 int KernelProxy::canTerminate(int pid) {
-    HANDLE hpr = OpenProcess(PROCESS_TERMINATE, FALSE, static_cast<DWORD>(pid));
-    if (hpr == NULL) return -1;
-    CloseHandle(hpr);
+    auto pr = ProcHandle(static_cast<DWORD>(pid), PROCESS_TERMINATE);
+    if (!pr.isValid()) return -1;
     return 0;
 }
 
@@ -79,44 +78,29 @@ VProcInfoList KernelProxy::procList() {
     // std::cout << "WinLib getProc" << std::endl;
     VProcInfoList res;
 
-    HANDLE hProcessSnap;
-    HANDLE hProcess;
-    // Set the structure and size
-    PROCESSENTRY32 pe32;
-    pe32.dwSize = sizeof( PROCESSENTRY32 );
-    THREADENTRY32 te32;
-    te32.dwSize = sizeof(THREADENTRY32);
-
     DWORD dwPriorityClass;
 
     // Take a snapshot of all processes in the system.
-    hProcessSnap = CreateToolhelp32Snapshot( TH32CS_SNAPPROCESS, 0 );
-    if( hProcessSnap == INVALID_HANDLE_VALUE )
+    auto procSnap = SnapHandle(TH32CS_SNAPPROCESS);
+    if( !procSnap.isValid() )
     {
         // std::cerr << "CreateToolhelp32Snapshot (of processes)" << std::endl;
         return std::move(res);
     }
 
-    HANDLE hThreadSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-    // ok &= (hThreadSnap != INVALID_HANDLE_VALUE);
-    if (hThreadSnap == INVALID_HANDLE_VALUE) {
-        // std::cerr << "Error: Unable to create thread snapshot. Code: " << GetLastError() << "\n";
-        CloseHandle( hProcessSnap );          // clean the snapshot object
-        return std::move(res);
-    }
-
+    // Set the structure and size
+    PROCESSENTRY32 pe32;
+    pe32.dwSize = sizeof( PROCESSENTRY32 );
 
     // Retrieve information about the first process,
-    if( !Process32First( hProcessSnap, &pe32 ) )
+    if( !Process32First( procSnap.get(), &pe32 ) )
     {
-        // printError( TEXT("Process32First") ); // show cause of failure
-        // std::cout << "Process32First" << std::endl;
-        CloseHandle( hProcessSnap );          // clean the snapshot object
-        CloseHandle( hThreadSnap );          // clean the snapshot object
         return std::move(res);
     }
 
+
     // get information about each process
+    HANDLE hProcess;
     PROCESS_MEMORY_COUNTERS mem;
     FILETIME creationTime, exitTime, kernelTime, userTime;
     do
@@ -125,21 +109,18 @@ VProcInfoList KernelProxy::procList() {
 
         // Retrieve the priority class.
         dwPriorityClass = 0;
-        hProcess = OpenProcess( PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID );
-        if( hProcess == NULL ){
-            // printError( TEXT("OpenProcess") );
-        // std::cout << "OpenProcess" << std::endl;
+        auto proc = ProcHandle(pe32.th32ProcessID, PROCESS_ALL_ACCESS);
+        if( !proc.isValid() ){
             continue;
-        } else {
-            dwPriorityClass = GetPriorityClass( hProcess );
+        } else {    // not actualy used
+            dwPriorityClass = GetPriorityClass( proc.get() );
             if( !dwPriorityClass ){
-                // printError( TEXT("GetPriorityClass") );
                 // std::cout << "GetPriorityClass" << std::endl;
-                CloseHandle( hProcess );
                 continue;
             }
         }
-        if (GetProcessMemoryInfo(hProcess, &mem, sizeof(mem))) {
+
+        if (GetProcessMemoryInfo(proc.get(), &mem, sizeof(mem))) {
             // std::cout << "Process ID: " << processID << std::endl;
             // std::cout << "Working Set Size: " << mem.WorkingSetSize / 1024 << " KB" << std::endl;
             // std::cout << "Pagefile Usage: " << pmc.PagefileUsage / 1024 << " KB" << std::endl;
@@ -148,15 +129,13 @@ VProcInfoList KernelProxy::procList() {
         ULARGE_INTEGER uliTime;
         uliTime.LowPart  = 0;
         uliTime.HighPart = 0;
-        if (!GetProcessTimes(hProcess, &creationTime, &exitTime, &kernelTime, &userTime)) {
+        if (!GetProcessTimes(proc.get(), &creationTime, &exitTime, &kernelTime, &userTime)) {
             // std::cerr << "GetProcessTimes failed. Error code: " << GetLastError() << "\n";
             // return 1;
         } else {
             uliTime.LowPart  = creationTime.dwLowDateTime;
             uliTime.HighPart = creationTime.dwHighDateTime;
         }
-        // TreadCount th;
-        // th = lthread(pe32.th32ProcessID);
         vpri.pid = pe32.th32ProcessID;
         vpri.ppid = pe32.th32ParentProcessID;
         // vpri.comm = std::wstring(buffer.data()); //pe32.szExeFile;
@@ -169,27 +148,24 @@ VProcInfoList KernelProxy::procList() {
         vpri.uid = 0;
         res << vpri;
 
-    } while( Process32Next( hProcessSnap, &pe32 ) );
+    } while( Process32Next( procSnap.get(), &pe32 ) );
 
-    CloseHandle(hThreadSnap);
-    CloseHandle( hProcessSnap );
     return std::move(res);
 }
 
 QString KernelProxy::procPath(int pid) {
     auto res = QString("");
-    HANDLE hp = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    auto proc = ProcHandle(static_cast<DWORD>(pid), PROCESS_QUERY_LIMITED_INFORMATION);
 
-    if (hp) {
+    if (proc.isValid()) {
         TCHAR filePath[MAX_PATH];
         DWORD size = MAX_PATH;
-        if (QueryFullProcessImageName(hp, 0, filePath, &size)) {
+        if (QueryFullProcessImageName(proc.get(), 0, filePath, &size) > 0) {
             // std::wcout << L"Process Path: " << filePath << std::endl;
+            res = QString(filePath);
         } else {
             // std::cerr << "Failed to retrieve process path." << std::endl;
         }
-        res = QString(filePath);
-        CloseHandle(hp);
     } else {
         // std::cerr << "Failed to open process." << std::endl;
     }
@@ -199,7 +175,6 @@ QString KernelProxy::procPath(int pid) {
 // res =0 for error, but it's not fair enought
 uint64_t KernelProxy::sizeRAM() {
     uint64_t res{0};  // same as unsigned long long
-    // ULONGLONG totalKB = 0;
 
     // Retrieve the amount of physically installed RAM in kilobytes
     if (GetPhysicallyInstalledSystemMemory(&res)) {

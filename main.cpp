@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
 
     // std::vector<vk_proc_info> procData;
     auto logger = std::make_unique<Logger>( KernelProxy::getSelf().logPath() );
+    // auto logger = std::make_unique<Logger>( "./Logs" );
     if (!logger->isValid()){
         // qFatal("App LOG dir not exist and can't be created.");
         qCritical() << logger->lastError();

@@ -31,10 +31,10 @@ void Logger::log(const QString &msg, int type =0)
     // if (msg.isEmpty()) return;
     if (!(type & m_level)) return; // nothing to log
     QString lvl{""};
-    if (type & SMLOG::INFO) lvl = "II";
-    else if (type & SMLOG::ERROR) lvl = "EE";
-    else if (type & SMLOG::FATAL) lvl = "FF";
-    else if (type & SMLOG::WARN) lvl = "WW";
+    if (type & static_cast<int>(SMLOG::EINFO)) lvl = "II";
+    else if (type & static_cast<int>(SMLOG::EERROR)) lvl = "EE";
+    else if (type & static_cast<int>(SMLOG::EFATAL)) lvl = "FF";
+    else if (type & static_cast<int>(SMLOG::EWARN)) lvl = "WW";
     else lvl = "??";
     QFile logFile(generateFileName());
     if (!logFile.open(QIODevice::WriteOnly | QIODeviceBase::Append | QIODevice::Text)) {
@@ -54,14 +54,14 @@ void Logger::log(const QString &msg, int type =0)
     logFile.close();
 
     if (m_toConsole) {
-        if (type & SMLOG::INFO) qInfo() << str;
-        else if (type & SMLOG::ERROR) qCritical() << str;
-        else if (type & SMLOG::FATAL) qCritical() << str;
-        else if (type & SMLOG::WARN) qWarning() << str;
+        if (type & static_cast<int>(SMLOG::EINFO)) qInfo() << str;
+        else if (type & static_cast<int>(SMLOG::EERROR)) qCritical() << str;
+        else if (type & static_cast<int>(SMLOG::EFATAL)) qCritical() << str;
+        else if (type & static_cast<int>(SMLOG::EWARN)) qWarning() << str;
         else qDebug() << str;
 
         // terminate in case of FATAL
-        if (type & SMLOG::FATAL) emit terminate();
+        if (type & static_cast<int>(SMLOG::EFATAL)) emit terminate();
     }
 
 }

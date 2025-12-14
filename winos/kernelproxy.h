@@ -74,7 +74,7 @@ public:
     static KernelProxy & getSelf() {
         static KernelProxy self;
         return self;
-    };
+    }
     ~KernelProxy() noexcept = default;
 
     int test() {return 42;}

@@ -93,5 +93,5 @@ jobs:
       uses: actions/upload-artifact@v4
       if: success()
       with:
-        name: ${{ runner.os }}-app-stable-build
+        name: ${{ runner.os }}-app-beta-build
         path: ${{ github.workspace }}/build/

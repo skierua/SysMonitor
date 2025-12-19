@@ -19,7 +19,8 @@
 // static_assert(false, "MacOS is not supported");
 #include "macos/kernelproxy.h"
 #elif defined(__linux__)
-static_assert(false, "Linux is not supported");
+// static_assert(false, "Linux is not supported");
+#include "../linux/kernelproxy.h"
 #elif defined(_WIN64)
 // static_assert(false, "Windows/WIN64 is not supported");
 #include "winos/kernelproxy.h"

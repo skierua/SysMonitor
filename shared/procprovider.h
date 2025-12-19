@@ -2,7 +2,8 @@
 #define PROCPROVIDER_H
 
 #include <QObject>
-#include <QtQML>
+// #include <QtQML>
+#include <QDateTime>
 #include <QAbstractListModel>
 #include <QModelIndex>
 

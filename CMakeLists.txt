@@ -11,8 +11,16 @@ set(QML_INCLUDES
 
 find_package(Qt6 REQUIRED COMPONENTS Quick)
 find_package(Qt6 REQUIRED COMPONENTS Core)
+# find_package(Qt6 REQUIRED COMPONENTS Qml)
+# find_package(Qt6 REQUIRED COMPONENTS Quick)
 find_package(Qt6 REQUIRED COMPONENTS Graphs)
 
+
+qt_standard_project_setup(REQUIRES 6.8)
+
+qt_add_executable(appSysMonitor  WIN32 MACOSX_BUNDLE
+    main.cpp
+)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     message(STATUS "macOS-specific QML and sources.")
@@ -24,20 +32,22 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # Windows-specific files
     list(APPEND QML_SOURCES_COMMON winos/kernelproxy.h winos/kernelproxy.cpp)
 
-# elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-#     message(STATUS "Linux-specific QML and sources.")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    message(STATUS "Linux-specific QML and sources.")
+    set(HAS_PROC_FS, FALSE)
     # Linux-specific files
-    # list(APPEND QML_SOURCES_COMMON linux_dbus_interface.cpp)
-
+    if(IS_DIRECTORY "/proc")
+        list(APPEND QML_SOURCES_COMMON linux/kernelproxy.h linux/kernelproxy.cpp)
+        # target_link_libraries(appSysMonitor PRIVATE proc2)
+        set(HAS_PROC_FS, TRUE)
+    endif()
+    if (!HAS_PROC_FS)
+        message(FATAL_ERROR "Unspported linux distro. Folder /proc doesn't exist.")
+    endif()
 else()
-    message(WARNING "No specific QML files defined for ${CMAKE_SYSTEM_NAME}.")
+    message(FATAL_ERROR "Unsupported OS. No kernelproxy.h defined for ${CMAKE_SYSTEM_NAME}.")
 endif()
 
-qt_standard_project_setup(REQUIRES 6.8)
-
-qt_add_executable(appSysMonitor  WIN32 MACOSX_BUNDLE
-    main.cpp
-)
 qt_add_qml_module(appSysMonitor
     URI SysMonitor
     VERSION 1.0
@@ -85,7 +95,10 @@ set_target_properties(appSysMonitor PROPERTIES
 
 target_link_libraries(appSysMonitor PRIVATE Qt6::Quick)
 target_link_libraries(appSysMonitor PRIVATE Qt6::Core)
+# target_link_libraries(appSysMonitor PRIVATE Qt6::Qml)
+# target_link_libraries(appSysMonitor PRIVATE Qt6::Quick)
 target_link_libraries(appSysMonitor PRIVATE Qt6::Graphs)
+
 
 
 include(GNUInstallDirs)

@@ -1,6 +1,18 @@
 ## SysMonitor ##
 MultiOS system monitor, pet project
 
+### Features ###
+
+- info about processes (permitted only)
+    - PID
+    - executable's name
+    - executable's full system path
+    - RAM usage
+    - thread open/active
+    - start up time
+- possibility to terminate processes (PressAndHold for context menu)
+- last minute RAM average usage chart
+
 ### MacOS ##
 beta, ready to use
 - Tahoe
@@ -18,20 +30,13 @@ beta, ready to use
 - CMake 3.27.7(Qt)
 
 ### Linux ###
-not ready yet
+beta, ready to use
+- kdeneon(ubuntu-latest)
+- gcc version 13.3.0 (Ubuntu x86 64bit)
+- Qt 6.10.0 for Desktop
+- CMake 3.30.5
+- /proc file system is mandatory
 
-
-### Features ###
-
-- info about processes (permitted only)
-    - PID
-    - executable's name
-    - executable's full system path
-    - RAM usage
-    - thread open/active
-    - start up time
-- possibility to terminate processes (Shift+MouseLeft)
-- last minute RAM average usage chart
 
 ### Branches ###
 - stable: stable

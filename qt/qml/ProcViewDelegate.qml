@@ -90,17 +90,31 @@ T.ItemDelegate {
             anchors.fill: parent
             onClicked: (mouse) => {
                 // console.log("T.ItemDelegate clicked pid =" +root.model.pid + " index="+ root.row )
-                if (root.ListView.view.model.crntPID !== root.model.pid) {
-                   root.ListView.view.model.crntPID = root.model.pid
-                   // should set the currentIndex becouse Providet set it in a second
-                   root.ListView.view.currentIndex = root.row
-                   crntPIDChanged() // emit signal
-                   if (mouse.modifiers & Qt.ShiftModifier) openContextMenu()
-                } else {
-                    root.ListView.view.currentIndex = -1
-                   root.ListView.view.model.crntPID = 0
-                }
+                           if (mouse.button === Qt.LeftButton) {
+                               if (root.ListView.view.model.crntPID !== root.model.pid) {
+                                  root.ListView.view.model.crntPID = root.model.pid
+                                  // should set the currentIndex becouse Providet set it in a second
+                                  root.ListView.view.currentIndex = root.row
+                                  crntPIDChanged() // emit signal
+                                  // if (mouse.modifiers & Qt.ShiftModifier) openContextMenu()
+                               } else {
+                                   root.ListView.view.currentIndex = -1
+                                   root.ListView.view.model.crntPID = 0
+                               }
+
+                           }
+
             }
+            onPressAndHold: (mouse) => {
+                                // console.log("ItemDelegate onPressAndHold here")
+                                if (root.ListView.view.model.crntPID !== root.model.pid) {
+                                   root.ListView.view.model.crntPID = root.model.pid
+                                   // should set the currentIndex becouse Providet set it in a second
+                                   root.ListView.view.currentIndex = root.row
+                                   crntPIDChanged() // emit signal
+                                }
+                                openContextMenu()
+                    }
             // onDoubleClicked: {
             //     // console.log("T.ItemDelegate clicked pid =" +root.model.pid + " index="+ root.row )
             //     root.ListView.view.model.crntPID = root.model.pid

@@ -23,7 +23,7 @@ struct vk_proc_info {
 };
 
 // Q_DECLARE_METATYPE(vk_proc_info)
-#define VProcInfoList QList<vk_proc_info>
-#define VProcInfoVec std::vector<vk_proc_info>
+// #define VProcInfoList QList<vk_proc_info>
+// #define VProcInfoVec std::vector<vk_proc_info>
 
 #endif // STRU_H

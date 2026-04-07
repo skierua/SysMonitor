@@ -4,8 +4,6 @@
 #include <QObject>
 #include <QPoint>
 
-#include <QDebug>
-
 // #include "macos/macmonitor.h"
 
 class MemProvider : public QObject

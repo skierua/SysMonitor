@@ -1,3 +1,7 @@
+2026-04-07
+  * переробити вивід на три графіки usageRAM на
+  wire_count + active_count + inactive_count + speculative_count?
+
 2025-12-03
 win MSVC2022
  - ScrollBar.vertical for proc view isn't visible. Probably it's system's depended behavior

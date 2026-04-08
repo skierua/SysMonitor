@@ -18,11 +18,11 @@
 #include "spec/mackernel.h"
 using Krnl = MacKernel;
 #elif defined(_WIN64)           //defined(Q_OS_WIN)
-static_assert(false, "Windows is not supported");
+// static_assert(false, "Windows is not supported");
 #include "spec/winkernel.h"
 using Krnl = WinKernel;
 #elif defined(__linux__)            //defined(Q_OS_LINUX)
-static_assert(false, "Linux is not supported");
+// static_assert(false, "Linux is not supported");
 #include "spec/linuxkernel.h"
 using Krnl = LinuxKernel;
 #else

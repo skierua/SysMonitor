@@ -1,3 +1,9 @@
+#include <QFile>
+#include <QDir>
+#include <QtLogging>
+
+#include <QDebug>
+
 #include "logger.h"
 
 Logger::Logger(QObject *parent)

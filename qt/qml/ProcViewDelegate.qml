@@ -90,16 +90,22 @@ T.ItemDelegate {
             anchors.fill: parent
             onClicked: (mouse) => {
                 // console.log("T.ItemDelegate clicked pid =" +root.model.pid + " index="+ root.row )
-                if (root.ListView.view.model.crntPID !== root.model.pid) {
-                   root.ListView.view.model.crntPID = root.model.pid
-                   // should set the currentIndex becouse Providet set it in a second
-                   root.ListView.view.currentIndex = root.row
-                   crntPIDChanged() // emit signal
-                   if (mouse.modifiers & Qt.ShiftModifier) openContextMenu()
+                if (mouse.button === Qt.RightButton ||
+                    (mouse.button === Qt.LeftButton && mouse.modifiers & Qt.ControlModifier)){
+                    openContextMenu()
                 } else {
-                    root.ListView.view.currentIndex = -1
-                   root.ListView.view.model.crntPID = 0
+                    if (root.ListView.view.model.crntPID !== root.model.pid) { // change current
+                        root.ListView.view.model.crntPID = root.model.pid
+                      // should set the currentIndex becouse Providet set it in a second
+                        root.ListView.view.currentIndex = root.row
+                        crntPIDChanged() // emit signal
+                    } else {    // deselect current
+                        root.ListView.view.currentIndex = -1
+                        root.ListView.view.model.crntPID = 0
+                    }
+
                 }
+
             }
             // onDoubleClicked: {
             //     // console.log("T.ItemDelegate clicked pid =" +root.model.pid + " index="+ root.row )

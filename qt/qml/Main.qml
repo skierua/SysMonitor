@@ -43,6 +43,13 @@ Window {
             // dbg("terminateAction onTriggered PID=" + procProvider.crntPID)
     }
 
+    Action{
+        id: showInfoAction
+        checkable: true
+        checked: true
+        text: qsTr("Show info area")
+    }
+
     Page{
         anchors.fill: parent
         // header: ToolBar{
@@ -104,7 +111,21 @@ Window {
                         }
                         delegate: ProcViewDelegate{
                             onOpenContextMenu: { procContextMenu.popup(); }
-                            onCrntPIDChanged: { footerCrntPath.text = procProvider.procPath(); }
+                            onCrntPIDChanged: {
+                                // dbg("onCrntPIDChanged currentIndex=" + vw.currentIndex, "2y")
+                                if (vw.currentIndex < 0){
+                                    procCrntPID.text = ""
+                                    procCrntPPID.text = ""
+                                    procCrntEUID.text = ""
+                                    procCrntPath.text = ""
+                                } else {
+                                    // dbg("onCrntPIDChanged NOT -1 currentIndex=" + vw.currentIndex, "2y")
+                                    procCrntPID.text = procProvider.crntPID
+                                    procCrntPPID.text = procProvider.getPPID(vw.currentIndex)
+                                    procCrntEUID.text = procProvider.getEUID(vw.currentIndex)
+                                    procCrntPath.text = procProvider.procPath();
+                                }
+                            }
                         }
                         // highlight: ProcViewHighlight{}
                         // highlightFollowsCurrentItem: false
@@ -141,8 +162,9 @@ Window {
                         id: procContextMenu
                         // MenuItem { action: clearFilterAction; }
                         MenuItem { action: terminateAction; }
+                        MenuItem { action: showInfoAction; }
                         // MenuSeparator { padding: 5; }
-                        // MenuItem { action: bindModeAction; }
+
                     }
                     // MouseArea{
                     //     anchors.fill: parent
@@ -151,35 +173,133 @@ Window {
 
                 }
                 Item{
+                    id: info
+                    visible: showInfoAction.checked
                     Layout.fillWidth: true
                     Layout.preferredHeight: parent.height / 3
                     Layout.maximumHeight: 200
-                    clip: true
-                    MemView{
-                        dataProvider: root.memProvider
+                    // clip: true
+                    RowLayout{
+                        anchors.fill: parent
+                        Rectangle{
+                            Layout.preferredWidth: (parent.width - parent.spacing) / 2
+                            Layout.fillHeight: true
+                            border{width:1; color: "silver"}
+                            radius: 10
+                            clip: true
+                            // color: "khaki"
+                            color: "transparent"
+                            Item{
+                                anchors{fill: parent; margins:5}
+                                clip: true
+                                ColumnLayout{
+                                    // anchors.fill: parent
+                                    // Layout.fillWidth: true
+                                    // Layout.fillHeight: true
+                                    Row{
+                                        Layout.fillWidth: true
+                                        Label{
+                                            id: procCrntPIDLabel
+                                            text: qsTr("PID: ")
+                                        }
+
+                                        Text {
+                                            id: procCrntPID
+                                            font.pixelSize: 12
+                                        }
+                                    }
+                                    Row{
+                                        Layout.fillWidth: true
+                                        Label{
+                                            id: procCrntPPIDLabel
+                                            text: qsTr("PPID: ")
+                                        }
+
+                                        Text {
+                                            id: procCrntPPID
+                                            font.pixelSize: 12
+                                        }
+                                    }
+                                    Row{
+                                        Layout.fillWidth: true
+                                        Label{
+                                            id: procCrntEUIDLabel
+                                            text: qsTr("User ID: ")
+                                        }
+
+                                        Text {
+                                            id: procCrntEUID
+                                            font.pixelSize: 12
+                                        }
+                                    }
+                                    Row{
+                                        Layout.fillWidth: true
+                                        Label{
+                                            id: procCrntPathLabel
+                                            text: qsTr("Path: ")
+                                        }
+
+                                        Text {
+                                            id: procCrntPath
+                                            // Layout.preferredWidth: parent.width - parent.spacing - procCrntPathLabel.width
+                                            // width: parent.width // - parent.spacing - procCrntPathLabel.width
+                                            font.pixelSize: 12
+                                            elide: Text.ElideLeft
+                                            // text:"jsakj"
+                                            MouseArea{
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                ToolTip.delay: 1000
+                                                ToolTip.timeout: 5000
+                                                ToolTip.visible: containsMouse
+                                                ToolTip.text: parent.text
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                        }
+                        Rectangle{
+                            Layout.preferredWidth: (parent.width - parent.spacing) / 2
+                            Layout.fillHeight: true
+                            // Layout.fillWidth: true
+                            // Layout.preferredHeight: parent.height
+                            border{width:1; color: "silver"}
+                            radius: 10
+                            color: "transparent"
+
+                            MemView{
+                                anchors.fill: parent
+                                dataProvider: root.memProvider
+                            }
+
+                        }
+
                     }
                 }
+
 
             }
         }
         footer:  Rectangle{
             width: parent.width
-            height: 30      //childrenRect.height
+            height: 32
+            // height: childrenRect.height
             color: 'whitesmoke'
             RowLayout{
-                anchors{fill: parent; margins: 5}
-                spacing: 5
-                Text {
-                    id: footerCrntPath
-                    Layout.fillWidth: true
-                    elide: Text.ElideLeft
-                    MouseArea{
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        ToolTip.delay: 1000
-                        ToolTip.timeout: 5000
-                        ToolTip.visible: containsMouse
-                        ToolTip.text: parent.text
+                anchors{/*fill: parent; leftMargin: 10;*/ rightMargin: 10; right: parent.right; verticalCenter: parent.verticalCenter }
+                spacing: 20
+                TextField{
+                    id: filterEdit
+                    Layout.preferredWidth: 100
+                    selectByMouse: true
+                    onActiveFocusChanged: if (activeFocus) {selectAll()}
+                    horizontalAlignment: Text.AlignHCenter
+                    // font.pixelSize: 10
+                    placeholderText: "filter"
+                    onEditingFinished: {
+                        root.procProvider.nameFilter = text.toLowerCase()
                     }
                 }
                 Text {

@@ -1,8 +1,24 @@
-#include "kernelproxy.h"
+#include <iostream>
+#include <cerrno>
+#include <dirent.h>
+#include <fstream>
+#include <limits.h>
+// #include <libproc2/pids.h>
+// #include <ranges>    // unsupported by compiller
+#include <sstream>
+#include <signal.h> // For kill()
+#include <sys/sysinfo.h>
+#include <sys/types.h>
+#include <system_error>
 
-// KernelProxy::KernelProxy(){}
+#include <QString>
+#include <QDebug>
 
-int KernelProxy::canTerminate(int pid) {
+#include "linuxkernel.h"
+
+// LinuxKernel::LinuxKernel(){}
+
+int LinuxKernel::canTerminate(int pid) {
     if (pid < 2) return -1;
 
     return kill(pid, 0);
@@ -15,7 +31,7 @@ int KernelProxy::canTerminate(int pid) {
     // geteuid() == 0 || geteuid() == pid
 }
 
-int KernelProxy::termProc(int pid) {
+int LinuxKernel::termProc(int pid) {
     int signal = SIGTERM;
     if (!kill(pid, signal)) {
         m_lastError = strerror(errno);
@@ -30,7 +46,7 @@ int KernelProxy::termProc(int pid) {
     }
 }
 
-VProcInfoList KernelProxy::procList() {
+VProcInfoList LinuxKernel::procList() {
     VProcInfoList res;
     DIR* dir = opendir("/proc");
     if (dir == nullptr){
@@ -153,7 +169,7 @@ VProcInfoList KernelProxy::procList() {
 /*
  * unfortumatly can't done
  * unpredictable behaviour & info/man leak
-VProcInfoList KernelProxy::procList_libproc2() {
+VProcInfoList LinuxKernel::procList_libproc2() {
     VProcInfoList res;
     struct pids_info *info = nullptr;
     struct pids_stack *stack{nullptr};
@@ -249,7 +265,7 @@ VProcInfoList KernelProxy::procList_libproc2() {
 }
 */
 
-QString KernelProxy::procPath(int pid) {
+QString LinuxKernel::procPath(int pid) {
     if (pid < 1) return QString("");
     std::string path = "/proc/" + std::to_string(pid) + "/exe";
     // std::vector<char> buffer(PATH_MAX);
@@ -265,7 +281,7 @@ QString KernelProxy::procPath(int pid) {
     }
 }
 
-uint64_t KernelProxy::sizeRAM() {
+uint64_t LinuxKernel::sizeRAM() {
     uint64_t res{0};  // same as unsigned long long
     struct sysinfo info;
     if (sysinfo(&info) != 0){
@@ -276,7 +292,7 @@ uint64_t KernelProxy::sizeRAM() {
     return res;
 }
 
-uint64_t KernelProxy::usageRAM() {
+uint64_t LinuxKernel::usageRAM() {
     uint64_t res{0};  // same as unsigned long long
     struct sysinfo info;
     if (sysinfo(&info) != 0){

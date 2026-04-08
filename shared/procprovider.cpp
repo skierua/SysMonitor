@@ -1,8 +1,27 @@
+#include <iostream>
+#include <chrono> // For std::chrono::seconds, milliseconds, etc.
+#include <thread> // For std::this_thread::sleep_for
+#include <QDateTime>
+
 #include "procprovider.h"
+
+#if defined(__APPLE__)          //definedQ_OS_MAC)
+#include "../spec/mackernel.h"
+using Kernel = MacKernel;
+#elif defined(_WIN64)           //defined(Q_OS_WIN)
+// static_assert(false, "Windows is not supported");
+#include "../spec/winkernel.h"
+using Kernel = WinKernel;
+#elif defined(__linux__)            //defined(Q_OS_LINUX)
+// static_assert(false, "Linux is not supported");
+#include "../spec/linuxkernel.h"
+using Kernel = LinuxKernel;
+#else
+#error "Platform not supported"
+#endif
 
 ProcProvider::ProcProvider(QObject *parent)
     : QAbstractListModel{parent}
-    // , m_crntEUID{KernelProxy::getSelf().crntEUID()}
 { }
 
 /*
@@ -17,6 +36,10 @@ void ProcProvider::unlock(){
     m_lock = false;
 }
 
+bool ProcProvider::canTerminate() const{
+    return Kernel::getSelf().canTerminate(m_crntPID) == 0;
+}
+
 /*
  * terminate process for current PID
  */
@@ -26,7 +49,7 @@ bool ProcProvider::terminate()
     auto msg = QString("ProcProvider::terminate() %1/%2")
                    .arg(QString::number(m_crntPID),
                         m_procList.at(m_crntPIDIndex).qcomm);
-    int ok = KernelProxy::getSelf().termProc(m_crntPID);
+    int ok = Kernel::getSelf().termProc(m_crntPID);
     // qDebug() << "ProcProvider::terminate 1";
     if (ok == 0){
         // to avoid compiler optimiztion
@@ -34,7 +57,7 @@ bool ProcProvider::terminate()
         beginRemoveRows(QModelIndex(), row, row);
         // qDebug() << "ProcProvider::terminate 2";
         m_crntPIDIndex = -1;
-        m_crntPID = 0;
+        m_crntPID = -1;
         m_procList.remove(row);
         endRemoveRows();
         // qDebug() << "ProcProvider::terminate 3";
@@ -52,8 +75,8 @@ bool ProcProvider::terminate()
  */
 QString ProcProvider::procPath() {
     // qDebug()<< "procPath() pid=" << m_crntPID << " ind=" << m_crntPIDIndex;
-    if (m_crntPID == 0) return QString("");
-    QString res = KernelProxy::getSelf().procPath(m_crntPID);
+    if (m_crntPID < 0) return QString("");
+    QString res = Kernel::getSelf().procPath(m_crntPID);
     // qDebug()<< " pid=" << m_crntPID << " path=" << res;
     if (res.isEmpty()){
         auto msg = QString("ProcProvider::procPath() %1/%2 FAILED")
@@ -75,64 +98,65 @@ void ProcProvider::addProcList(QList<vk_proc_info> &&proc){
         emit message("Kernel error. Processess list not retrieved.", 4);
         return;
     }
-    std::sort(proc.begin(), proc.end(), [](vk_proc_info a,vk_proc_info b){ return a.mem > b.mem;});
-    m_procList = proc;
-    if (proc.size() != m_procList.size()) {
-        if (proc.size() > m_procList.size()) {
-            beginInsertRows(QModelIndex(),  m_procList.size(),  proc.size()-1);
-            while (proc.size() > m_procList.size()) m_procList << proc.at(m_procList.size() -1);
-            endInsertRows();
-        } else if (proc.size() < m_procList.size()) {
-            beginRemoveRows(QModelIndex(), proc.size(), m_procList.size()-1);
-            while (proc.size() < m_procList.size()) m_procList.remove(m_procList.size()-1);
-            endRemoveRows();
+    if (m_refreshCounter++ % 5) {
+        std::sort(proc.begin(), proc.end(), [](vk_proc_info a,vk_proc_info b){ return a.mem > b.mem;});
+    }
+    // 2 ways for velocity
+    if (m_nameFilter.isEmpty()){
+        if (proc.size() != m_procList.size()) {
+            // size_t len = proc.size();
+            if (proc.size() > m_procList.size()) {
+                struct vk_proc_info blankRow;
+                beginInsertRows(QModelIndex(),  m_procList.size(),  proc.size()-1);
+                while (proc.size() > m_procList.size()) m_procList << blankRow;
+                endInsertRows();
+            } else if (proc.size() < m_procList.size()) {
+                beginRemoveRows(QModelIndex(), proc.size(), m_procList.size()-1);
+                while (proc.size() < m_procList.size()) m_procList.remove(m_procList.size()-1);
+                endRemoveRows();
+            }
+            m_procList = proc;
+        }
+    } else {
+        QList<vk_proc_info> filteredProc;
+        for (auto& v: proc) {
+            if (~v.qcomm.toLower().indexOf(m_nameFilter)){
+                filteredProc.append(v);
+            }
+        }
+        if (filteredProc.size() != m_procList.size()) {
+            if (filteredProc.size() > m_procList.size()) {
+                struct vk_proc_info blankRow;
+                beginInsertRows(QModelIndex(),  m_procList.size(),  filteredProc.size()-1);
+                while (filteredProc.size() > m_procList.size()) m_procList << blankRow;
+                endInsertRows();
+            } else if (filteredProc.size() < m_procList.size()) {
+                beginRemoveRows(QModelIndex(), filteredProc.size(), m_procList.size()-1);
+                while (filteredProc.size() < m_procList.size()) m_procList.remove(m_procList.size()-1);
+                endRemoveRows();
+            }
+            m_procList = filteredProc;
         }
     }
+ // return;
     auto nextIndex{-1};
-    if(m_crntPID != 0) {
-        nextIndex = 0;
-        for ( ; nextIndex < m_procList.size() && m_procList[nextIndex].pid != m_crntPID; ++nextIndex) {}
-        if (nextIndex == m_procList.size()) nextIndex = -1;
+    if (!(m_crntPID < 0)) {
+        for ( nextIndex = 0; nextIndex < m_procList.size() && m_procList[nextIndex].pid != m_crntPID; ++nextIndex) {}
+        if (nextIndex == m_procList.size()) {
+            nextIndex = -1;
+            m_crntPID = -1;
+            emit crntPIDChanged();
+        }
     }
-    // endResetModel();
     if (nextIndex != m_crntPIDIndex){
         m_crntPIDIndex = nextIndex;
         emit crntPIDIndexChanged(m_crntPIDIndex);
     }
     dataChanged(index(0,0)
                 ,index(m_procList.size()-1,0));
-    // for (auto i{0}; i < 30; ++i) addProc(proc[i]);
     unlock();
     // prnProc();
 }
-
-/*void ProcProvider::start()
-{
-    std::cout << "procprovider started" << std::endl;
-    int n{0};
-    while (true && n < 10) {
-        ++n;
-        m_procData = m_procFn();
-        std::sort(m_procData.begin(), m_procData.end(), [](vk_proc_info a,vk_proc_info b){ return a.mem > b.mem;});
-        std::vector<vk_proc_info> tmp = m_procData;
-        if (tmp.size()) {
-            emit procChanged(tmp);
-            emit emitTest(tmp.size());
-            // emit procChanged(std::move(tmp));
-        } else {
-            // TODO error
-            std::cout << "#6g63 procprovider error";
-        }
-
-        beginRemoveRows(QModelIndex(), 0, rowCount());
-        m_procList.clear();
-        endRemoveRows();
-        for (auto i{0}; i < 30; ++i) addProc(m_procData[i]);
-
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    }
-}*/
 
 /*
  * for debugging
@@ -187,49 +211,6 @@ QVariant ProcProvider::data(const QModelIndex & index, int role) const {
         return QDateTime::fromSecsSinceEpoch(proc.tm).toString(Qt::ISODate);
     else return QVariant();
 }
-
-#if 0
-int ProcProvider::columnCount(const QModelIndex & parent) const {
-    Q_UNUSED(parent);
-    return COLUMN_COUNT;
-}
-
-QModelIndex ProcProvider::parent(const QModelIndex &) const {
-    return QModelIndex();
-}
-
-QModelIndex ProcProvider::index(int row, int column, const QModelIndex &parent) const {
-    Q_UNUSED(parent);
-    if (row < 0 || row >= m_procList.count() || column < 0 || column >= COLUMN_COUNT )
-        return QModelIndex();
-    return createIndex(row, column);
-}
-
-QVariant ProcProvider::data(const QModelIndex & index, int role) const {
-    // if (index.row() < 0 || index.row() >= m_procList.count())
-    //     return QVariant();
-    if (!index.isValid()) return QVariant();
-
-    const vk_proc_info &proc = m_procList[index.row()];
-    if (role == Qt::DisplayRole) {
-        if (index.column() == 0) {
-            return proc.pid;
-        } else if (index.column() == 1) {
-            return QString::fromStdString(proc.comm);
-        } else if (index.column() == 2) {
-            return humanMem(proc.mem);
-        } else if (index.column() == 3) {
-            return proc.th_all;
-        } else if (index.column() == 4) {
-            return proc.vm;
-        } else if (index.column() == 5) {
-            return proc.th_active;
-        } else if (index.column() == 6) {
-            return QDateTime::fromSecsSinceEpoch(proc.tm).toString(Qt::ISODate);
-        } else return QVariant();
-    } else  return QVariant();
-}
-#endif
 
 // for QML/ListModel
 QHash<int, QByteArray> ProcProvider::roleNames() const {

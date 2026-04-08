@@ -4,11 +4,6 @@
 // #include <iostream>
 
 #include <QObject>
-#include <QFile>
-#include <QDir>
-#include <QtLogging>
-
-#include <QDebug>
 
 class Logger : public QObject
 {

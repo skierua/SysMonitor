@@ -6,20 +6,19 @@
 
 // currently not used
 
-/*template <class Implementation>
-class BaseMonitor {
-
-public:
-    int test() { return impl()->test(); }
-    int crntEUID() { return impl()->crntEUID(); }
-
-private:
-    Implementation* impl() {  return static_cast<Implementation*>(this); }
-}; */
+using VProcInfoList = QList<vk_proc_info>;
 
 template <typename Derived>
 class StaticBase {
 public:
+    // static StaticBase & getSelf() { return &impl()->getSelf(); }
+    // static Derived& getSelf() { return *static_cast<Derived*>(instance); }
+
+    static Derived& instance() {
+        static Derived staticInstance;
+        return staticInstance;
+    }
+
     int test() { return impl()->test(); }
 
     int crntEUID() { return impl()->crntEUID(); }
@@ -34,10 +33,8 @@ public:
     const QString& logPath() { return impl()->logPath(); }
 
 protected:
-    // The key to making it "static" and non-instantiable:
-    // Only derived classes (which are friends) can access constructors,
-    // and we delete them anyway to be safe.
     StaticBase() = default;
+    friend Derived;
     StaticBase(const StaticBase&) = delete;
     StaticBase(StaticBase&&) = delete;
     StaticBase& operator=(const StaticBase&) = delete;
@@ -45,6 +42,7 @@ protected:
 
 private:
     Derived* impl() {  return static_cast<Derived*>(this); }
+    const Derived* impl() const { return static_cast<const Derived*>(this); }
 };
 
 #endif // TEMPLIB_H

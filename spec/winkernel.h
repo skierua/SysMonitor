@@ -1,24 +1,14 @@
-#ifndef KERNELPROXY_H
-#define KERNELPROXY_H
+#ifndef WINKERNEL_H
+#define WINKERNEL_H
 
 // #include <iostream>
-#include <string>
+// #include <string>
 #include <vector>
-#include <windows.h>
-#include <inttypes.h>
-#include <tlhelp32.h>
-#include <minwinbase.h>
-#include <iomanip>
-// #include <cstdlib>
-// #include <iomanip>
-#include <psapi.h>
-#include <tchar.h>
-
 #include <QString>
 
-//#include "../shared/stru.h"
+#include "../shared/TempLib.h"
 
-// using std::vector;
+using VProcInfoList = QList<vk_proc_info>;
 
 #ifndef WIN_TICK_COEF   // actialy nano
 #define WIN_TICK_COEF 10000000ULL
@@ -67,18 +57,19 @@ public:
     }
 };
 
-class KernelProxy : public StaticBase<KernelProxy>
+class WinKernel : public StaticBase<WinKernel>
 {
+    friend class StaticBase<WinKernel>;
 
 public:
-    static KernelProxy & getSelf() {
-        static KernelProxy self;
+    static WinKernel & getSelf() {
+        static WinKernel self;
         return self;
     }
-    ~KernelProxy() noexcept = default;
+    ~WinKernel() noexcept = default;
 
     int test() {return 42;}
-    int crntEUID() { return -1; }
+    int crntEUID() { return 0; }
     int canTerminate(int pid);
     int termProc(int pid);
     VProcInfoList procList();
@@ -90,15 +81,10 @@ public:
     const QString& logPath() { return m_logPath; }
 
 private:
-    static KernelProxy * self;
+    static WinKernel * self;
 
     QString m_lastError{QString("")};
     QString m_logPath{QString("./Logs")};
-    // KernelProxy() = default;
-    // KernelProxy(const KernelProxy&)= delete;
-    // KernelProxy& operator=(const KernelProxy&)= delete;
-    // KernelProxy(KernelProxy&&)= delete;
-    // KernelProxy& operator=(KernelProxy&&)= delete;
 };
 
-#endif // KERNELPROXY_H
+#endif // WINKERNEL_H

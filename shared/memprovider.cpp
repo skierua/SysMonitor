@@ -1,3 +1,5 @@
+#include <QDebug>
+
 #include "memprovider.h"
 
 MemProvider::MemProvider(QObject *parent)
@@ -15,6 +17,7 @@ void MemProvider::addData(unsigned long long v)
     for (auto i{0}; i < m_data.size(); ++i) {
         // y-value in kB to avoid overflow for QPoint.y (int)
         plist.append(QPoint(i - m_data.size(), m_data.at(i)/1024));
+        // plist.append(QPoint(i, m_data.at(i)/1024));
     }
     emit usageChanged(plist);
 }

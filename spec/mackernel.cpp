@@ -1,8 +1,24 @@
-#include "kernelproxy.h"
+#include <iostream>
+#include <cerrno>
+#include <libproc.h> // Include for macOS specific functions
+#include <sys/sysctl.h> // For sysctl() and related definitions
+#include <mach/mach.h>  // for host_statistics64
+#include <signal.h> // For kill()
+#include <sys/types.h>
+#include <system_error>
+#include <unistd.h>     // geteuid
 
-// KernelProxy::KernelProxy() {}
+#include "mackernel.h"
 
-int KernelProxy::canTerminate(int pid) {
+
+int MacKernel::canTerminate(int pid) {
+    // struct proc_bsdinfo bsdinfo;
+    // if (proc_pidinfo(pid, PROC_PIDTBSDINFO, 0, &bsdinfo, sizeof(bsdinfo)) > 0) {
+    //     std::cerr << "canTerminate\n"+ bsdinfo.pbi_uid << "\t" << geteuid() << std::endl;
+    //     return (bsdinfo.pbi_uid == geteuid() || geteuid() == 0);
+    // }
+    // return 0;
+
     if (pid < 2) return -1;
 
     return kill(pid, 0);
@@ -15,7 +31,9 @@ int KernelProxy::canTerminate(int pid) {
     // geteuid() == 0 || geteuid() == pid
 }
 
-int KernelProxy::termProc(int pid) {
+int MacKernel::crntEUID() { return geteuid(); }
+
+int MacKernel::termProc(int pid) {
     int signal = SIGTERM;
     // std::cout << "BEFORE lib termProc pid=" << pid
     //           << ". Reason: " << strerror(errno) << std::endl;
@@ -37,7 +55,7 @@ int KernelProxy::termProc(int pid) {
     // << ". Reason: " << strerror(errno) << std::endl;
 }
 
-VProcInfoList KernelProxy::procList() {
+VProcInfoList MacKernel::procList() {
     VProcInfoList res;
     size_t len = proc_listpids(PROC_ALL_PIDS, 0, NULL, 0);
     if (len <= 0) {
@@ -79,25 +97,29 @@ VProcInfoList KernelProxy::procList() {
     return std::move(res);
 }
 
-QString KernelProxy::procPath(int pid) {
+QString MacKernel::procPath(int pid) {
     if (pid < 1) return QString("");
 
-    int buffer_size = PROC_PIDPATHINFO_MAXSIZE; // Max size defined in libproc.h
-    std::vector<char> buffer(buffer_size);
+    int len = PROC_PIDPATHINFO_MAXSIZE; // Max size defined in libproc.h
+    // std::vector<char> buffer(len);
 
-    // Get the path of the executable for the current PID
-    int ret = proc_pidpath(pid, buffer.data(), buffer_size);
+    // // Get the path of the executable for the current PID
+    // int ret = proc_pidpath(pid, buffer.data(), len);
+
+    char buffer[len];
+    int ret = proc_pidpath(pid, &buffer, len);
 
     if (ret > 0) {
         // ret is the length of the path string
-        return QString(buffer.data());
+        // return QString(buffer.data());
+        return QString(buffer);
     } else {
         m_lastError = strerror(errno);
         return QString("");
     }
 }
 
-uint64_t KernelProxy::sizeRAM() {
+uint64_t MacKernel::sizeRAM() {
     uint64_t res{0};  // same as unsigned long long
     size_t len = sizeof(res);
 
@@ -112,7 +134,7 @@ uint64_t KernelProxy::sizeRAM() {
     return res;
 }
 
-uint64_t KernelProxy::usageRAM() {
+uint64_t MacKernel::usageRAM() {
     uint64_t res{0};  // same as unsigned long long
 
     vm_statistics64_data_t vm_stats;

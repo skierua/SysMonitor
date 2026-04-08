@@ -2,31 +2,12 @@
 #define PROCPROVIDER_H
 
 #include <QObject>
-// #include <QtQML>
-#include <QDateTime>
 #include <QAbstractListModel>
 #include <QModelIndex>
 
-#include <iostream>
-#include <chrono> // For std::chrono::seconds, milliseconds, etc.
-#include <thread> // For std::this_thread::sleep_for
-#include <vector>
-
 #include "stru.h"
 
-#if defined(__APPLE__)
-// static_assert(false, "MacOS is not supported");
-#include "../macos/kernelproxy.h"
-#elif defined(__linux__)
-// static_assert(false, "Linux is not supported");
-#include "../linux/kernelproxy.h"
-#elif defined(_WIN64)
-// static_assert(false, "Windows/WIN64 is not supported");
-#include "../winos/kernelproxy.h"
-// namespace SML = WinLib;
-#else
-static_assert(false, "Target OS is not supported");
-#endif
+using VProcInfoList = QList<vk_proc_info>;
 
 class ProcProvider : public QAbstractListModel
 {
@@ -35,6 +16,7 @@ class ProcProvider : public QAbstractListModel
     // QML_ELEMENT
     Q_PROPERTY(int crntPID MEMBER m_crntPID NOTIFY crntPIDChanged)
     Q_PROPERTY(int crntPIDIndex MEMBER m_crntPIDIndex NOTIFY crntPIDIndexChanged)
+    Q_PROPERTY(QString nameFilter MEMBER m_nameFilter NOTIFY nameFilterChanged)
 
 public:
     enum ProcRoles {
@@ -43,30 +25,14 @@ public:
     };
     explicit ProcProvider(QObject *parent = nullptr);
 
-    // kernel/proclib.h leyer
-    // func for processes info retrieving
-
-    // func for processes full system path
-    // void setProcPath(std::function<QString(int)> fn){
-    //     m_procPath = std::move(fn); }
-
-    // func for credentials to terminate process
-    // void setProcCanTerm(std::function<int(int)> fn){
-    //     m_procCanTerm = std::move(fn); }
-
-    // func for terminate process
-    // void setProcTerm(std::function<int(int)> fn){
-    //     m_procTerm = std::move(fn); }
-
 
     // QML adaptors for kernel/proclib.h leyer
     Q_INVOKABLE bool terminate() ;          // terminate current
     Q_INVOKABLE QString procPath();   // path for current
     Q_INVOKABLE int getPID(int row) const { return m_procList[row].pid; }
-    Q_INVOKABLE bool canTerminate() const
-    { return KernelProxy::getSelf().canTerminate(m_crntPID) == 0; }
-    // { return true || (m_crntPID != 0
-    //            && (m_crntEUID == 0 || m_crntEUID == m_procList[row].uid)); }
+    Q_INVOKABLE int getPPID(int row) const { return m_procList[row].ppid; }
+    Q_INVOKABLE int getEUID(int row) const { return m_procList[row].uid; }
+    Q_INVOKABLE bool canTerminate() const;
 
     // populate model
     void addProcList(VProcInfoList&& proc);
@@ -75,50 +41,38 @@ public:
     int rowCount(const QModelIndex & parent = QModelIndex()) const override;
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const override;
 
-    // garbage
-    // void start();
-    // void addProc(const vk_proc_info &proc);
-    // int columnCount(const QModelIndex & parent = QModelIndex()) const override;
-    // QModelIndex parent(const QModelIndex &) const override;
-    // QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
 
 
 protected:
     QHash<int, QByteArray> roleNames() const override;
+    void lock(int t =100);  // lock data for update (kind of guard)
+    void unlock();
+    QString humanMem(unsigned int mem) const;   // RAM size in B/kB/MB/GB
+
+    void prnProc() const;  // in test purpose
 
 
 signals:
     // void emitTest(int);
     void crntPIDChanged();
     void crntPIDIndexChanged(int);
+    void nameFilterChanged();
     void message(QString, int);
 
 private:
-    // uint m_pageCapacity{10};
-    int m_crntPID{0};
+    uint m_refreshCounter{0};
+    pid_t m_crntPID{0};
     int m_crntPIDIndex{-1};
     // int m_crntPIDAttr{0};       // only for canTerminate
 
+    QString m_nameFilter = QString();
+
     // int m_crntEUID{std::numeric_limits<int>::max()};
     bool m_lock{false};
+
     QList<vk_proc_info> m_procList;
 
-    // std::vector<vk_proc_info> m_procData;
 
-    // std::function<QString(int)> m_procPath = [](int){
-    //     return QString(""); };
-
-    // std::function<int(int)> m_procTerm = [](int){
-    //     return -1; };
-    // std::function<int(int)> m_procCanTerm = [](int){
-    //     return -1; };
-
-    QString humanMem(unsigned int mem) const;   // RAM size in B/kB/MB/GB
-
-    void prnProc() const;  // in test purpose
-
-    void lock(int t =100);  // lock data for update (kind of guard)
-    void unlock();
 };
 
 #endif // PROCPROVIDER_H

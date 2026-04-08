@@ -1,14 +1,24 @@
-#include "kernelproxy.h"
+#include <windows.h>
+#include <inttypes.h>
+#include <tlhelp32.h>
+#include <minwinbase.h>
+#include <iomanip>
+// #include <cstdlib>
+// #include <iomanip>
+#include <psapi.h>
+#include <tchar.h>
 
-// KernelProxy::KernelProxy() {}
+#include "WinKernel.h"
 
-int KernelProxy::canTerminate(int pid) {
+// WinKernel::WinKernel() {}
+
+int WinKernel::canTerminate(int pid) {
     auto pr = ProcHandle(static_cast<DWORD>(pid), PROCESS_TERMINATE);
     if (!pr.isValid()) return -1;
     return 0;
 }
 
-int KernelProxy::termProc(int pid) {
+int WinKernel::termProc(int pid) {
     // Gracefully close GUI process
        auto closeGui = [](DWORD lpid) {
            struct EnumData {
@@ -74,7 +84,7 @@ int KernelProxy::termProc(int pid) {
        return 0;
 }
 
-VProcInfoList KernelProxy::procList() {
+VProcInfoList WinKernel::procList() {
     // std::cout << "WinLib getProc" << std::endl;
     VProcInfoList res;
 
@@ -153,7 +163,7 @@ VProcInfoList KernelProxy::procList() {
     return std::move(res);
 }
 
-QString KernelProxy::procPath(int pid) {
+QString WinKernel::procPath(int pid) {
     auto res = QString("");
     auto proc = ProcHandle(static_cast<DWORD>(pid), PROCESS_QUERY_LIMITED_INFORMATION);
 
@@ -173,7 +183,7 @@ QString KernelProxy::procPath(int pid) {
 }
 
 // res =0 for error, but it's not fair enought
-uint64_t KernelProxy::sizeRAM() {
+uint64_t WinKernel::sizeRAM() {
     uint64_t res{0};  // same as unsigned long long
 
     // Retrieve the amount of physically installed RAM in kilobytes
@@ -189,7 +199,7 @@ uint64_t KernelProxy::sizeRAM() {
 }
 
 // res =0 for error, but it's not fair enought
-uint64_t KernelProxy::usageRAM() {
+uint64_t WinKernel::usageRAM() {
     uint64_t res{0};  // same as unsigned long long
     MEMORYSTATUSEX memInfo;
     memInfo.dwLength = sizeof(memInfo);

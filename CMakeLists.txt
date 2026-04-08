@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(SysMonitor VERSION 1.0 LANGUAGES CXX)
+project(SysMonitor
+    VERSION 2.0
+    LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -18,6 +20,36 @@ find_package(Qt6 REQUIRED COMPONENTS Graphs)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
+set(CPP_OS_COMMON
+    shared/stru.h
+    shared/TempLib.h
+    shared/procprovider.h shared/procprovider.cpp
+    shared/memprovider.h shared/memprovider.cpp
+    shared/logger.h shared/logger.cpp
+)
+
+set(CPP_MAC_SPECIFIC
+    spec/mackernel.h
+    spec/mackernel.cpp
+)
+
+set(CPP_LINUX_SPECIFIC
+    linux/linuxkernel.h
+    linux/linuxkernel.cpp
+)
+
+set(CPP_WIN_SPECIFIC
+    spec/winkernel.h
+    spec/winkernel.cpp
+)
+
+set(JS_FILES
+    qt/qml/lib.js
+)
+
+# Includes OS-specific C++ sources
+set(CPP_OS_SPECIFIC )
+
 qt_add_executable(appSysMonitor  WIN32 MACOSX_BUNDLE
     main.cpp
 )
@@ -25,19 +57,32 @@ qt_add_executable(appSysMonitor  WIN32 MACOSX_BUNDLE
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     message(STATUS "macOS-specific QML and sources.")
     # macOS-specific files
-    list(APPEND QML_SOURCES_COMMON macos/kernelproxy.h macos/kernelproxy.cpp)
+    set(CPP_OS_SPECIFIC
+        spec/mackernel.h
+        spec/mackernel.cpp)
+
+    # list(APPEND QML_SOURCES_COMMON macos/kernelproxy.h macos/kernelproxy.cpp)
 
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     message(STATUS "Windows-specific QML and sources.")
     # Windows-specific files
-    list(APPEND QML_SOURCES_COMMON winos/kernelproxy.h winos/kernelproxy.cpp)
+    # target_link_libraries(${PROJECT_NAME} PRIVATE Psapi)
+    set(CPP_OS_SPECIFIC
+        spec/winkernel.h
+        spec/winkernel.cpp
+`   )
+    # list(APPEND QML_SOURCES_COMMON winos/kernelproxy.h winos/kernelproxy.cpp)
 
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     message(STATUS "Linux-specific QML and sources.")
     set(HAS_PROC_FS, FALSE)
     # Linux-specific files
     if(IS_DIRECTORY "/proc")
-        list(APPEND QML_SOURCES_COMMON linux/kernelproxy.h linux/kernelproxy.cpp)
+        set(CPP_OS_SPECIFIC
+            spec/linuxkernel.h
+            spec/linuxkernel.cpp
+        )
+        # list(APPEND QML_SOURCES_COMMON linux/kernelproxy.h linux/kernelproxy.cpp)
         # target_link_libraries(appSysMonitor PRIVATE proc2)
         set(HAS_PROC_FS, TRUE)
     endif()
@@ -48,28 +93,39 @@ else()
     message(FATAL_ERROR "Unsupported OS. No kernelproxy.h defined for ${CMAKE_SYSTEM_NAME}.")
 endif()
 
+# if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+#     message(STATUS "Linux-specific QML and sources.")
+#     set(HAS_PROC_FS, FALSE)
+#     # Linux-specific files
+#     if(IS_DIRECTORY "/proc")
+#         set(HAS_PROC_FS, TRUE)
+#     endif()
+#     if (!HAS_PROC_FS)
+#         message(FATAL_ERROR "Unspported linux distro. Folder /proc doesn't exist.")
+#     endif()
+# endif()
+
 qt_add_qml_module(appSysMonitor
     URI SysMonitor
     VERSION 1.0
     QML_FILES
         qt/qml/Main.qml
-        SOURCES shared/TempLib.h
-        # SOURCES test/testmac.h test/testmac.cpp
-        SOURCES shared/stru.h
-        SOURCES shared/procprovider.h shared/procprovider.cpp
-        # SOURCES macos/lib.h
-        SOURCES shared/memprovider.h shared/memprovider.cpp
-        SOURCES shared/logger.h shared/logger.cpp
-        QML_FILES qt/qml/ProcViewDelegate.qml
-        QML_FILES qt/qml/ProcViewHighlight.qml
-        QML_FILES qt/qml/HeaderElem.qml
-        QML_FILES qt/qml/MemView.qml
-        QML_FILES qt/qml/lib.js
-        RESOURCES TODO.txt
-        RESOURCES README.md
-        # RESOURCES .gitignore
-        # SOURCES winos/kernelproxy.h winos/kernelproxy.cpp
-        SOURCES ${QML_SOURCES_COMMON}       # Includes the common and OS-specific C++ sources
+        qt/qml/ProcViewDelegate.qml
+        qt/qml/ProcViewHighlight.qml
+        qt/qml/HeaderElem.qml
+        qt/qml/MemView.qml
+        ${JS_FILES}
+    SOURCES
+        ${CPP_OS_COMMON}
+        # ${CPP_MAC_SPECIFIC}
+        # ${CPP_LINUX_SPECIFIC}
+        # ${CPP_WIN_SPECIFIC}
+        ${CPP_OS_SPECIFIC}
+        # ${QML_SOURCES_COMMON}
+    RESOURCES
+        TODO.txt
+        README.md
+        .gitignore
 )
 
 # qt_add_qml_module(appSysMonitor
@@ -96,7 +152,6 @@ set_target_properties(appSysMonitor PROPERTIES
 target_link_libraries(appSysMonitor PRIVATE Qt6::Quick)
 target_link_libraries(appSysMonitor PRIVATE Qt6::Core)
 # target_link_libraries(appSysMonitor PRIVATE Qt6::Qml)
-# target_link_libraries(appSysMonitor PRIVATE Qt6::Quick)
 target_link_libraries(appSysMonitor PRIVATE Qt6::Graphs)
 
 

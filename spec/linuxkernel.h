@@ -1,6 +1,7 @@
 #ifndef LINUXKERNEL_H
 #define LINUXKERNEL_H
 
+#include <unistd.h>     // geteuid
 
 #include "../shared/TempLib.h"
 

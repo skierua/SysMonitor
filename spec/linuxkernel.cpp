@@ -10,7 +10,6 @@
 #include <sys/sysinfo.h>
 #include <sys/types.h>
 #include <system_error>
-#include <unistd.h>     // geteuid
 
 #include <QString>
 #include <QDebug>

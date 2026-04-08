@@ -66,7 +66,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     message(STATUS "Windows-specific QML and sources.")
     # Windows-specific files
-    target_link_libraries(${PROJECT_NAME} PRIVATE Psapi)
+    # target_link_libraries(${PROJECT_NAME} PRIVATE Psapi)
     set(CPP_OS_SPECIFIC
         spec/winkernel.h
         spec/winkernel.cpp

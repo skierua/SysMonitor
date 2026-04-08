@@ -14,7 +14,7 @@
 #include <QString>
 #include <QDebug>
 
-#include "LinuxKernel.h"
+#include "linuxkernel.h"
 
 // LinuxKernel::LinuxKernel(){}
 

@@ -13,20 +13,6 @@
 #include "shared/logger.h"
 // #include "shared/TempLib.h"
 
-// #include "test/testmac.h"
-
-// #if defined(__APPLE__)
-// // static_assert(false, "MacOS is not supported");
-// #include "macos/kernelproxy.h"
-// #elif defined(__linux__)
-// // static_assert(false, "Linux is not supported");
-// #include "../linux/kernelproxy.h"
-// #elif defined(_WIN64)
-// // static_assert(false, "Windows/WIN64 is not supported");
-// #include "winos/kernelproxy.h"
-// #else
-// static_assert(false, "Target OS is not supported");
-// #endif
 
 #if defined(__APPLE__)          //definedQ_OS_MAC)
 #include "spec/mackernel.h"

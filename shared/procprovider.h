@@ -7,6 +7,22 @@
 
 #include "stru.h"
 
+#if defined(__APPLE__)          //definedQ_OS_MAC)
+#include "../spec/mackernel.h"
+using Kernel = MacKernel;
+#elif defined(_WIN64)           //defined(Q_OS_WIN)
+// static_assert(false, "Windows is not supported");
+#include "../spec/winkernel.h"
+using Kernel = WinKernel;
+typedef int pid_t;
+#elif defined(__linux__)            //defined(Q_OS_LINUX)
+// static_assert(false, "Linux is not supported");
+#include "../spec/linuxkernel.h"
+using Kernel = LinuxKernel;
+#else
+#error "Platform not supported"
+#endif
+
 using VProcInfoList = QList<vk_proc_info>;
 
 class ProcProvider : public QAbstractListModel

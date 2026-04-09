@@ -14,8 +14,8 @@
 | OS | Version/Environment | Status | Notes |
 | :--- | :--- | :--- | :--- |
 | **macOS** | Tahoe | ✅ | Ready to use. |
-| **Windows** | Win10 | ⚠️ | Ready (MSVC). MinGW 13.1.0 is currently unstable. |
-| **Linux** | — | 🛠️ | Not ready yet. |
+| **Windows** | Win10 | ✅ | Ready (MSVC). MinGW 13.1.0 is currently unstable. |
+| **Linux** | — | ⚠️ | Done but Not tested yet. |
 
 ---
 ## Architecture Highlights
@@ -47,6 +47,8 @@ The application provides detailed monitoring of running processes (within permit
 *   **Windows:** 
     *   **MSVC 2022 64-bit** (Recommended)
     *   MinGW 13.1.0 64-bit (Experimental/Unstable)
+* **ubuntu-latest**
+  * /proc2 is used for retrieving data
 
 ---
 

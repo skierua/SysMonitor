@@ -15,7 +15,7 @@
 | :--- | :--- | :--- | :--- |
 | **macOS** | Tahoe | ✅ | Ready to use. |
 | **Windows** | Win10 | ✅ | Ready (MSVC). MinGW 13.1.0 is currently unstable. |
-| **Linux** | — | ⚠️ | Done but Not tested yet. |
+| **Linux** | ubuntu-latest | ⚠️ | Done but Not tested yet. |
 
 ---
 ## Architecture Highlights

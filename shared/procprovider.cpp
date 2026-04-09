@@ -5,21 +5,6 @@
 
 #include "procprovider.h"
 
-#if defined(__APPLE__)          //definedQ_OS_MAC)
-#include "../spec/mackernel.h"
-using Kernel = MacKernel;
-#elif defined(_WIN64)           //defined(Q_OS_WIN)
-// static_assert(false, "Windows is not supported");
-#include "../spec/winkernel.h"
-using Kernel = WinKernel;
-#elif defined(__linux__)            //defined(Q_OS_LINUX)
-// static_assert(false, "Linux is not supported");
-#include "../spec/linuxkernel.h"
-using Kernel = LinuxKernel;
-#else
-#error "Platform not supported"
-#endif
-
 ProcProvider::ProcProvider(QObject *parent)
     : QAbstractListModel{parent}
 { }
@@ -37,6 +22,7 @@ void ProcProvider::unlock(){
 }
 
 bool ProcProvider::canTerminate() const{
+    if (m_crntPIDIndex < 0 || m_crntPID < 0) return false;
     return Kernel::getSelf().canTerminate(m_crntPID) == 0;
 }
 

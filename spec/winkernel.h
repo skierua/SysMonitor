@@ -1,23 +1,26 @@
 #ifndef WINKERNEL_H
 #define WINKERNEL_H
 
-// #include <iostream>
-// #include <string>
-#include <vector>
+#include <windows.h>
+#include <tlhelp32.h>
+#include <minwinbase.h>
+#include <psapi.h>
+
+#include <tchar.h>
+
+// #include <vector>
 #include <QString>
 
 #include "../shared/TempLib.h"
 
 using VProcInfoList = QList<vk_proc_info>;
 
-#ifndef WIN_TICK_COEF   // actialy nano
+#ifndef WIN_TICK_COEF   // actualy nano
 #define WIN_TICK_COEF 10000000ULL
 #endif
 #ifndef WIN_EPOC_DIFF
 #define WIN_EPOC_DIFF 11644473600ULL
 #endif
-
-#include "../shared/TempLib.h"
 
 class ProcHandle {
 

@@ -28,21 +28,6 @@ set(CPP_OS_COMMON
     shared/logger.h shared/logger.cpp
 )
 
-set(CPP_MAC_SPECIFIC
-    spec/mackernel.h
-    spec/mackernel.cpp
-)
-
-set(CPP_LINUX_SPECIFIC
-    linux/linuxkernel.h
-    linux/linuxkernel.cpp
-)
-
-set(CPP_WIN_SPECIFIC
-    spec/winkernel.h
-    spec/winkernel.cpp
-)
-
 set(JS_FILES
     qt/qml/lib.js
 )
@@ -57,32 +42,41 @@ qt_add_executable(appSysMonitor  WIN32 MACOSX_BUNDLE
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     message(STATUS "macOS-specific QML and sources.")
     # macOS-specific files
-    set(CPP_OS_SPECIFIC
-        spec/mackernel.h
-        spec/mackernel.cpp)
 
-    # list(APPEND QML_SOURCES_COMMON macos/kernelproxy.h macos/kernelproxy.cpp)
+    # OK for Mac
+    # set(CPP_OS_SPECIFIC
+    #     spec/mackernel.h
+    #     spec/mackernel.cpp)
+
+    list(APPEND CPP_OS_SPECIFIC
+        spec/mackernel.h
+        spec/mackernel.cpp
+    )
 
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     message(STATUS "Windows-specific QML and sources.")
     # Windows-specific files
     # target_link_libraries(${PROJECT_NAME} PRIVATE Psapi)
-    set(CPP_OS_SPECIFIC
+
+# ERROR for Windows !!!
+#     set(CPP_OS_SPECIFIC
+#         spec/winkernel.h
+#         spec/winkernel.cpp)
+
+    list(APPEND CPP_OS_SPECIFIC
         spec/winkernel.h
         spec/winkernel.cpp
-`   )
-    # list(APPEND QML_SOURCES_COMMON winos/kernelproxy.h winos/kernelproxy.cpp)
+    )
 
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     message(STATUS "Linux-specific QML and sources.")
     set(HAS_PROC_FS, FALSE)
     # Linux-specific files
     if(IS_DIRECTORY "/proc")
-        set(CPP_OS_SPECIFIC
+        list(APPEND CPP_OS_SPECIFIC
             spec/linuxkernel.h
             spec/linuxkernel.cpp
         )
-        # list(APPEND QML_SOURCES_COMMON linux/kernelproxy.h linux/kernelproxy.cpp)
         # target_link_libraries(appSysMonitor PRIVATE proc2)
         set(HAS_PROC_FS, TRUE)
     endif()

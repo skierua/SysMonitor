@@ -110,7 +110,11 @@ Window {
                             anchors.bottom: vw.bottom
                         }
                         delegate: ProcViewDelegate{
-                            onOpenContextMenu: { procContextMenu.popup(); }
+                            onOpenContextMenu: (canT) => {
+                                dbg("canTerminate=" + vw.model.canTerminate(), "8ha")
+                                terminateAction.enabled = vw.model.canTerminate()
+                                procContextMenu.popup();
+                            }
                             onCrntPIDChanged: {
                                 // dbg("onCrntPIDChanged currentIndex=" + vw.currentIndex, "2y")
                                 if (vw.currentIndex < 0){
@@ -127,34 +131,10 @@ Window {
                                 }
                             }
                         }
-                        // highlight: ProcViewHighlight{}
-                        // highlightFollowsCurrentItem: false
-                        // focus: true
 
-                        /*
-                        //too slow, moved to c++
-                        function restoreIndex(){
-                            let crnt = -1
-                            const pid = model.crntPID
-                            if (pid === 0) {
-                                currentIndex = crnt
-                                return
-                            }
-                            for (let i =0; i < model.rowCount(); ++i) {
-                                if (model.getPID(i) === pid) {
-                                    crnt = i
-                                    break;
-                                }
-                            }
-                            // dbg(String("pid=%1 i=%2 model.pid=%3 count=%4")
-                            //     .arg(pid).arg(i).arg(model.getPID(i)).arg(model.rowCount()))
-                            currentIndex = crnt;
-                        }
-                        */
-
-                        onCurrentIndexChanged: {
-                            terminateAction.enabled = model.canTerminate()
-                        }
+                        // onCurrentIndexChanged: {
+                        //     terminateAction.enabled = model.canTerminate()
+                        // }
                         onCountChanged: footerTotal.text = String("%1 proc").arg(count)
 
                     }
